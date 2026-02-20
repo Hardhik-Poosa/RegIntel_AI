@@ -1,7 +1,8 @@
 import enum
-from sqlalchemy import Column, String, Text, ForeignKey, Enum
+from sqlalchemy import Column, String, Text, ForeignKey, Enum, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from app.models.base import Base, UUIDMixin, TimestampMixin
 
 
@@ -35,11 +36,25 @@ class InternalControl(Base, UUIDMixin, TimestampMixin):
 
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(Enum(ControlStatus), default=ControlStatus.MISSING)
-    risk_score = Column(Enum(ControlRisk), default=ControlRisk.MEDIUM)
+
+    status = Column(
+        Enum(ControlStatus, name="control_status"),
+        default=ControlStatus.MISSING,
+        nullable=False,
+    )
+
+    risk_score = Column(
+        Enum(ControlRisk, name="control_risk"),
+        default=ControlRisk.MEDIUM,
+        nullable=False,
+    )
 
     # AI STORAGE
     ai_analysis = Column(Text, nullable=True)
 
+    # Compliance scoring
+    compliance_score = Column(Integer, default=0, nullable=False)
+
+    # Relationships
     organization = relationship("Organization")
     created_by = relationship("User")

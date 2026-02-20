@@ -14,7 +14,7 @@ from app.models.user import User
 from app.models.organization import Organization
 from app.models.control import InternalControl
 from app.core.config import settings
-
+from app.models.audit import AuditLog
 # Alembic Config object
 config = context.config
 

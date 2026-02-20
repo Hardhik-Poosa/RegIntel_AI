@@ -10,10 +10,12 @@ from app.services.control_service import ControlService
 from app.api.deps import get_current_active_user
 from app.api.deps_rbac import require_roles
 
-router = APIRouter()
+router = APIRouter(prefix="/controls", tags=["Controls"])
 
 
+# ===============================
 # CREATE CONTROL
+# ===============================
 @router.post("/", response_model=ControlResponse, status_code=status.HTTP_201_CREATED)
 async def create_control(
     control_in: ControlCreate,
@@ -30,7 +32,9 @@ async def create_control(
     )
 
 
+# ===============================
 # READ ALL CONTROLS
+# ===============================
 @router.get("/", response_model=List[ControlResponse])
 async def read_controls(
     skip: int = 0,
@@ -46,7 +50,9 @@ async def read_controls(
     )
 
 
+# ===============================
 # READ SINGLE CONTROL
+# ===============================
 @router.get("/{control_id}", response_model=ControlResponse)
 async def read_control(
     control_id: UUID,
@@ -65,7 +71,9 @@ async def read_control(
     return control
 
 
+# ===============================
 # UPDATE CONTROL
+# ===============================
 @router.put("/{control_id}", response_model=ControlResponse)
 async def update_control(
     control_id: UUID,
@@ -84,10 +92,17 @@ async def update_control(
     if not control:
         raise HTTPException(status_code=404, detail="Control not found")
 
-    return await ControlService.update(db=db, db_obj=control, obj_in=control_in)
+    return await ControlService.update(
+        db=db,
+        db_obj=control,
+        obj_in=control_in,
+        user_id=current_user.id,
+    )
 
 
+# ===============================
 # DELETE CONTROL
+# ===============================
 @router.delete("/{control_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_control(
     control_id: UUID,
@@ -103,4 +118,8 @@ async def delete_control(
     if not control:
         raise HTTPException(status_code=404, detail="Control not found")
 
-    await ControlService.delete(db=db, db_obj=control)
+    await ControlService.delete(
+        db=db,
+        db_obj=control,
+        user_id=current_user.id,
+    )

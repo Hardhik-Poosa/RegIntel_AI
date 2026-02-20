@@ -5,7 +5,13 @@ from app.api.auth import router as auth_router
 from app.db.database import engine
 from app.models.base import Base
 from app.models import *
+from app.api import audit
+from app.api import compliance
+from app.core.logging import setup_logging
+from app.api import compliance
 
+
+setup_logging()
 
 
 app = FastAPI(
@@ -63,3 +69,7 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}/controls",
     tags=["controls"],                      
 )
+
+app.include_router(audit.router, prefix="/api/v1")
+app.include_router(compliance.router, prefix="/api/v1")
+ 
