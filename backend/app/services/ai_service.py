@@ -3,33 +3,28 @@ import httpx
 
 class AIService:
     BASE_URL = "http://127.0.0.1:1234/v1/chat/completions"
+    MODEL = "qwen2.5-coder-7b-instruct"
 
     @staticmethod
-    async def analyze_control(description: str) -> str:
+    async def chat(prompt: str) -> str:
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     AIService.BASE_URL,
                     json={
-                        "model": "qwen2.5-coder-7b-instruct",
+                        "model": AIService.MODEL,
                         "messages": [
-                            {"role": "system", "content": "You are a compliance AI expert."},
+                            {
+                                "role": "system",
+                                "content": "You are an intelligent compliance AI assistant."
+                            },
                             {
                                 "role": "user",
-                                "content": f"""
-                                Analyze this internal control:
-
-                                {description}
-
-                                Provide:
-                                - Risk assessment
-                                - Gaps
-                                - Improvements
-                                """,
-                            },
+                                "content": prompt
+                            }
                         ],
-                        "temperature": 0.2,
-                    },
+                        "temperature": 0.3
+                    }
                 )
 
                 response.raise_for_status()
@@ -38,4 +33,19 @@ class AIService:
                 return data["choices"][0]["message"]["content"]
 
         except Exception as e:
-            return f"AI Analysis Failed: {str(e)}"
+            return f"AI Error: {str(e)}"
+
+    @staticmethod
+    async def analyze_control(description: str) -> str:
+        analysis_prompt = f"""
+Analyze the following internal control:
+
+{description}
+
+Provide:
+1. Risk assessment
+2. Compliance gaps
+3. Improvement suggestions
+"""
+
+        return await AIService.chat(analysis_prompt)
