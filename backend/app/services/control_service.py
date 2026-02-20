@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from app.models.control import InternalControl
 from app.schemas.control import ControlCreate, ControlUpdate
+from app.services.ai_service import AIService
 
 
 class ControlService:
@@ -27,6 +28,14 @@ class ControlService:
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+
+        # AI Execution
+        if db_obj.description:
+            analysis = await AIService.analyze_control(db_obj.description)
+            db_obj.ai_analysis = analysis
+            await db.commit()
+            await db.refresh(db_obj)
+
         return db_obj
 
     @staticmethod
@@ -77,18 +86,12 @@ class ControlService:
         for field, value in update_data.items():
             setattr(db_obj, field, value)
 
-        db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+
         return db_obj
 
     @staticmethod
-    async def delete(
-        db: AsyncSession,
-        *,
-        db_obj: InternalControl,
-    ) -> None:
-
+    async def delete(db: AsyncSession, *, db_obj: InternalControl) -> None:
         await db.delete(db_obj)
         await db.commit()
-        
