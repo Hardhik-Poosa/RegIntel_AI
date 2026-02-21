@@ -10,6 +10,9 @@ from app.models.control import InternalControl
 from app.schemas.control import ControlCreate, ControlUpdate
 from app.services.ai_service import AIService
 from app.services.audit_service import AuditService
+from app.services.compliance_service import ComplianceService
+from backend.app.schemas import control
+from backend.app.models import control
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,11 @@ class ControlService:
             entity_id=db_obj.id,
             details=f"Created control {db_obj.title}",
         )
+        
+        await ComplianceService.update_control_scores(
+            db,
+            organization_id,
+        )
 
         return db_obj
 
@@ -75,6 +83,13 @@ class ControlService:
 
                 if control:
                     control.ai_analysis = analysis
+                    analysis_lower = analysis.lower()
+                    if "high risk" in analysis_lower:
+                        control.risk_score = control.risk_score.__class__.HIGH
+                    elif "medium risk" in analysis_lower:
+                        control.risk_score = control.risk_score.__class__.MEDIUM
+                    elif "low risk" in analysis_lower:
+                        control.risk_score = control.risk_score.__class__.LOW
                     await db.commit()
                     logger.info(f"AI analysis saved for control {control_id}")
 
@@ -143,6 +158,11 @@ class ControlService:
             entity_type="CONTROL",
             entity_id=db_obj.id,
             details="Updated control",
+        )
+
+        await ComplianceService.update_control_scores(
+            db,
+            db_obj.organization_id,
         )
 
         return db_obj

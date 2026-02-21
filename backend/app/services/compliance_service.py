@@ -22,12 +22,33 @@ class ComplianceService:
         if not controls:
             return 0
 
-        implemented_count = 0
+        implemented = 0
 
         for control in controls:
             if control.status.name == "IMPLEMENTED":
-                implemented_count += 1
+                implemented += 1
 
-        percentage = int((implemented_count / len(controls)) * 100)
+        return int((implemented / len(controls)) * 100)
 
-        return percentage
+    @staticmethod
+    async def update_control_scores(
+        db: AsyncSession,
+        organization_id: UUID,
+    ) -> None:
+
+        score = await ComplianceService.calculate_score(
+            db,
+            organization_id,
+        )
+
+        stmt = select(InternalControl).where(
+            InternalControl.organization_id == organization_id
+        )
+
+        result = await db.execute(stmt)
+        controls = result.scalars().all()
+
+        for control in controls:
+            control.compliance_score = score
+
+        await db.commit()
