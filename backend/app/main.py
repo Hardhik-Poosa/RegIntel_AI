@@ -7,6 +7,7 @@ from app.models.base import Base
 from app.models import *
 from app.api import audit
 from app.api import compliance
+from app.api import dashboard
 from app.core.logging import setup_logging
 
 
@@ -71,4 +72,4 @@ app.include_router(
 
 app.include_router(audit.router, prefix="/api/v1")
 app.include_router(compliance.router, prefix="/api/v1")
- 
+app.include_router(dashboard.router, prefix="/api/v1")

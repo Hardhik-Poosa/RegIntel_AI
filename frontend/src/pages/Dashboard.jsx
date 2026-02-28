@@ -5,12 +5,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts'
 import { dashboardAPI, auditAPI } from '../services/api'
-import { ComplianceDonut } from '../components/ComplianceBar'
+import { ComplianceDonut }        from '../components/ComplianceBar'
 import { RiskBadge, StatusBadge } from '../components/RiskBadge'
-import LoadingSpinner from '../components/LoadingSpinner'
-import AlertMessage from '../components/AlertMessage'
+import LoadingSpinner             from '../components/LoadingSpinner'
+import AlertMessage               from '../components/AlertMessage'
+import { useToast }               from '../context/ToastContext'
 import { formatDate, formatAction } from '../utils/helpers'
-import { useAuth } from '../context/AuthContext'
+import { useAuth }                from '../context/AuthContext'
 
 // Chart colours
 const STATUS_COLORS = { IMPLEMENTED: '#3fb950', PARTIAL: '#d29922', MISSING: '#f85149' }
@@ -38,6 +39,7 @@ function CustomTooltip({ active, payload }) {
 
 export default function Dashboard() {
   const { user }             = useAuth()
+  const { toast }            = useToast()
   const [summary, setSummary]   = useState(null)
   const [logs, setLogs]         = useState([])
   const [loading, setLoading]   = useState(true)
@@ -59,7 +61,9 @@ export default function Dashboard() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err?.response?.data?.detail ?? 'Failed to load dashboard data.')
+          const msg = err?.response?.data?.detail ?? 'Failed to load dashboard data.'
+          setError(msg)
+          toast.error(msg)
         }
       } finally {
         if (!cancelled) setLoading(false)

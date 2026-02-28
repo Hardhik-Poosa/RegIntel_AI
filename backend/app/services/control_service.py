@@ -62,6 +62,7 @@ class ControlService:
             organization_id,
         )
 
+        await db.refresh(db_obj)
         return db_obj
 
     @staticmethod
@@ -163,6 +164,7 @@ class ControlService:
             db_obj.organization_id,
         )
 
+        await db.refresh(db_obj)
         return db_obj
 
     @staticmethod

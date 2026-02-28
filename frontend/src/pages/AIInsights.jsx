@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { aiAPI, controlsAPI } from '../services/api'
-import { RiskBadge } from '../components/RiskBadge'
-import LoadingSpinner from '../components/LoadingSpinner'
-import AlertMessage   from '../components/AlertMessage'
+import { RiskBadge }          from '../components/RiskBadge'
+import LoadingSpinner          from '../components/LoadingSpinner'
+import AlertMessage            from '../components/AlertMessage'
+import { useToast }            from '../context/ToastContext'
 import { truncate, formatDate } from '../utils/helpers'
 
 // Suggested prompts
@@ -15,12 +16,13 @@ const SUGGESTIONS = [
 ]
 
 export default function AIInsights() {
-  const [controls, setControls]   = useState([])
+  const { toast }                     = useToast()
+  const [controls, setControls]       = useState([])
   const [ctrlLoading, setCtrlLoading] = useState(true)
   const [ctrlError, setCtrlError]     = useState('')
 
-  const [prompt, setPrompt]       = useState('')
-  const [response, setResponse]   = useState('')
+  const [prompt, setPrompt]           = useState('')
+  const [response, setResponse]       = useState('')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatError, setChatError]     = useState('')
 
@@ -59,8 +61,11 @@ export default function AIInsights() {
     try {
       const { data } = await aiAPI.chat(p)
       setResponse(data.response ?? 'No response received.')
+      toast.success('AI analysis complete.')
     } catch (err) {
-      setChatError(err?.response?.data?.detail ?? 'AI service failed. Please try again.')
+      const msg = err?.response?.data?.detail ?? 'AI service failed. Please try again.'
+      setChatError(msg)
+      toast.error(msg)
     } finally {
       setChatLoading(false)
     }

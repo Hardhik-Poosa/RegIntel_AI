@@ -29,11 +29,11 @@ export default function Sidebar({ open, onClose }) {
       {open && (
         <div
           onClick={onClose}
+          className="d-lg-none"
           style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
-            zIndex: 1039, display: 'none',
+            zIndex: 1039,
           }}
-          className="d-lg-none"
         />
       )}
 

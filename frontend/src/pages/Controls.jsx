@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Modal }       from 'bootstrap'
-import { controlsAPI } from '../services/api'
+import { Modal }        from 'bootstrap'
+import { controlsAPI }  from '../services/api'
 import { RiskBadge, StatusBadge } from '../components/RiskBadge'
-import LoadingSpinner  from '../components/LoadingSpinner'
-import AlertMessage    from '../components/AlertMessage'
+import AlertMessage     from '../components/AlertMessage'
+import { TableSkeleton } from '../components/Skeleton'
+import { useToast }     from '../context/ToastContext'
 import { formatDate, truncate } from '../utils/helpers'
 
 // ── Empty form shape ───────────────────────────────────
@@ -26,6 +27,7 @@ function AISection({ text }) {
 
 // ── Control Form Modal ─────────────────────────────────
 function ControlModal({ modalRef, editTarget, onSaved }) {
+  const { toast }             = useToast()
   const [form, setForm]       = useState(EMPTY_FORM)
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState('')
@@ -56,14 +58,18 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
     try {
       if (editTarget) {
         await controlsAPI.update(editTarget.id, form)
+        Modal.getInstance(modalRef.current)?.hide()
+        toast.success(`"${form.title}" updated successfully.`)
       } else {
         await controlsAPI.create(form)
+        Modal.getInstance(modalRef.current)?.hide()
+        toast.success(`"${form.title}" created successfully.`)
       }
-      // Close modal and notify parent  
-      Modal.getInstance(modalRef.current)?.hide()
       onSaved()
     } catch (err) {
-      setError(err?.response?.data?.detail ?? 'Failed to save control.')
+      const msg = err?.response?.data?.detail ?? 'Failed to save control.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -158,6 +164,7 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
 
 // ── Delete Confirmation Modal ──────────────────────────
 function DeleteModal({ modalRef, target, onDeleted }) {
+  const { toast }               = useToast()
   const [deleting, setDeleting] = useState(false)
   const [error, setError]       = useState('')
 
@@ -170,9 +177,12 @@ function DeleteModal({ modalRef, target, onDeleted }) {
     try {
       await controlsAPI.delete(target.id)
       Modal.getInstance(modalRef.current)?.hide()
+      toast.success(`"${target.title}" deleted.`)
       onDeleted()
     } catch (err) {
-      setError(err?.response?.data?.detail ?? 'Failed to delete control.')
+      const msg = err?.response?.data?.detail ?? 'Failed to delete control.'
+      setError(msg)
+      toast.error(msg)
     } finally {
       setDeleting(false)
     }
@@ -339,7 +349,7 @@ export default function Controls() {
 
       {/* Feedback */}
       {error   && <AlertMessage type="error" message={error} />}
-      {loading && <LoadingSpinner text="Loading controls…" />}
+      {loading && <div className="rg-card p-0"><TableSkeleton cols={6} rows={6} /></div>}
 
       {/* Table */}
       {!loading && !error && (

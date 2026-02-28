@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import uuid as _uuid
 from typing import Optional, Any, Union
 
 from jose import jwt, JWTError
@@ -71,12 +72,14 @@ async def get_current_user(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
         )
-        user_id: str = payload.get("sub")
+        user_id_str: str = payload.get("sub")
 
-        if user_id is None:
+        if user_id_str is None:
             raise credentials_exception
 
-    except JWTError:
+        user_id = _uuid.UUID(user_id_str)
+
+    except (JWTError, ValueError):
         raise credentials_exception
 
     result = await db.execute(

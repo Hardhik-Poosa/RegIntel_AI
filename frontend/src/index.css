@@ -656,6 +656,25 @@ select.rg-input option {
   line-height: 1.6;
 }
 
+/* ── Skeleton shimmer ── */
+.rg-skeleton {
+  background: linear-gradient(90deg, #21262d 25%, #2d333b 50%, #21262d 75%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: rg-shimmer 1.4s infinite;
+}
+
+@keyframes rg-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Toast slide-in ── */
+@keyframes rg-toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 992px) {
   .rg-sidebar { transform: translateX(-100%); }

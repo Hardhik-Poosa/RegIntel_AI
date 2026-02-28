@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+env = [
+    "DATABASE_URL=sqlite+aiosqlite:///:memory:",
+    "SECRET_KEY=test-secret-key-for-testing-only",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/core/celery_app.py", "alembic/*"]
+
+[tool.coverage.report]
+show_missing = true

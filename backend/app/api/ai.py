@@ -3,7 +3,7 @@ from app.services.ai_service import AIService
 from app.api.deps import get_current_active_user
 from app.models.user import User
 
-router = APIRouter(prefix="/ai", tags=["AI"])
+router = APIRouter(tags=["AI"])
 
 
 @router.post("/chat")
