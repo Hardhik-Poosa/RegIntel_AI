@@ -11,8 +11,6 @@ from app.schemas.control import ControlCreate, ControlUpdate
 from app.services.ai_service import AIService
 from app.services.audit_service import AuditService
 from app.services.compliance_service import ComplianceService
-from backend.app.schemas import control
-from backend.app.models import control
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +67,9 @@ class ControlService:
     @staticmethod
     async def _background_ai_task(control_id: UUID, description: str):
 
-        from app.db.database import async_session_maker
+        from app.db.database import AsyncSessionLocal
 
-        async with async_session_maker() as db:
+        async with AsyncSessionLocal() as db:
             try:
                 analysis = await AIService.analyze_control(description)
 

@@ -79,6 +79,7 @@ async def update_control(
         db=db,
         db_obj=control,
         obj_in=control_in,
+        user_id=current_user.id,
     )
 
 
@@ -97,4 +98,4 @@ async def delete_control(
     if not control:
         raise HTTPException(status_code=404, detail="Control not found")
 
-    await ControlService.delete(db=db, db_obj=control)
+    await ControlService.delete(db=db, db_obj=control, user_id=current_user.id)

@@ -11,7 +11,7 @@ from app.models.user import User
 router = APIRouter(prefix="/audit", tags=["Audit"])
 
 
-@router.get("/", response_model=List[dict])
+@router.get("/")
 async def get_audit_logs(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),

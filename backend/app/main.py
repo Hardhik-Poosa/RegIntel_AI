@@ -8,7 +8,6 @@ from app.models import *
 from app.api import audit
 from app.api import compliance
 from app.core.logging import setup_logging
-from app.api import compliance
 
 
 setup_logging()
