@@ -14,6 +14,7 @@ import Audit      from './pages/Audit'
 import AIInsights from './pages/AIInsights'
 import Compliance from './pages/Compliance'
 import Admin      from './pages/Admin'
+import OrgSettings from './pages/OrgSettings'
 import NotFound   from './pages/NotFound'
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
               <Route path="/audit"      element={<Audit />}      />
               <Route path="/ai"         element={<AIInsights />} />
               <Route path="/admin"      element={<Admin />}      />
+              <Route path="/settings"   element={<OrgSettings />} />
             </Route>
 
             {/* ── Catch-all ───────────────────────────────── */}

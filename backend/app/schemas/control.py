@@ -29,6 +29,9 @@ class ControlResponse(ControlBase):
     created_by_id: UUID | None
     created_at: datetime
     updated_at: datetime
-    ai_analysis: str | None = None
+    ai_analysis:       str   | None = None
+    ai_suggested_risk: str   | None = None
+    ai_category:       str   | None = None
+    ai_confidence:     float | None = None
 
     model_config = ConfigDict(from_attributes=True)

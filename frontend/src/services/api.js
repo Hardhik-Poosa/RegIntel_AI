@@ -104,6 +104,7 @@ export const controlsAPI = {
   create: (payload) => api.post('/controls/', payload),
   update: (id, payload) => api.put(`/controls/${id}`, payload),
   delete: (id) => api.delete(`/controls/${id}`),
+  getAIStatus: (id) => api.get(`/controls/${id}/ai-status`),
 }
 
 // ──────────────────────────────────────────────────────
@@ -113,11 +114,12 @@ export const auditAPI = {
   getLogs: () => api.get('/audit/'),
 }
 
-// ──────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────────
 //  Compliance
-// ──────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────────
 export const complianceAPI = {
-  getScore: () => api.get('/compliance/score'),
+  getScore:    () => api.get('/compliance/score'),
+  getDetailed: () => api.get('/compliance/score/detailed'),
 }
 
 // ──────────────────────────────────────────────────────
@@ -132,6 +134,17 @@ export const aiAPI = {
 // ──────────────────────────────────────────────────────
 export const adminAPI = {
   getStats: () => api.get('/admin/stats'),
+}
+
+// ──────────────────────────────────────────────────────
+//  Users / Organisation management
+// ──────────────────────────────────────────────────────
+export const usersAPI = {
+  me:          ()                => api.get('/users/me'),
+  list:        ()                => api.get('/users/'),
+  invite:      (payload)         => api.post('/users/invite', payload),
+  changeRole:  (userId, role)    => api.patch(`/users/${userId}/role`, { role }),
+  remove:      (userId)          => api.delete(`/users/${userId}`),
 }
 
 export default api

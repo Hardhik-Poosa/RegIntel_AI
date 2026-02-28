@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+  # ── Database ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-regintel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-regintel}
+      POSTGRES_DB:       ${POSTGRES_DB:-regintel}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-regintel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Message broker / result backend ───────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── FastAPI backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-regintel}:${POSTGRES_PASSWORD:-regintel}@postgres:5432/${POSTGRES_DB:-regintel}
+      REDIS_URL:    redis://redis:6379/0
+      SECRET_KEY:   ${SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT:  ${ENVIRONMENT:-production}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+      AI_BASE_URL:  ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  # ── Celery worker ─────────────────────────────────────────────────────────
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-regintel}:${POSTGRES_PASSWORD:-regintel}@postgres:5432/${POSTGRES_DB:-regintel}
+      REDIS_URL:    redis://redis:6379/0
+      SECRET_KEY:   ${SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT:  ${ENVIRONMENT:-production}
+      AI_BASE_URL:  ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      celery -A app.tasks.ai_tasks worker
+             --loglevel=info
+             --concurrency=2
+             --queues=celery
+
+  # ── React frontend (served by Nginx) ─────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

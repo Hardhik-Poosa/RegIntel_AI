@@ -1,5 +1,13 @@
+import logging
 import httpx
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+AI_UNAVAILABLE = (
+    "AI analysis is temporarily unavailable. "
+    "Your control has been saved — please try the AI analysis again later."
+)
 
 
 class AIService:
@@ -40,19 +48,27 @@ class AIService:
                 return data["choices"][0]["message"]["content"]
 
         except Exception as e:
-            return f"AI Error: {str(e)}"
+            logger.warning("AI service call failed: %s", e)
+            return AI_UNAVAILABLE
 
     @staticmethod
     async def analyze_control(description: str) -> str:
-        analysis_prompt = f"""
-Analyze the following internal control:
+        """
+        Ask the AI to return a structured JSON analysis.
+        Falls back to a plain text prompt if the model returns non-JSON.
+        """
+        json_prompt = f"""You are a compliance AI assistant. Analyze the following internal control and return ONLY a valid JSON object — no markdown, no explanation, no extra text.
 
-{description}
+JSON schema:
+{{
+  "suggested_risk": "HIGH|MEDIUM|LOW",
+  "category": "ACCESS_CONTROL|DATA_PROTECTION|INCIDENT_RESPONSE|VENDOR_MANAGEMENT|EMPLOYEE_TRAINING|AUDIT|OTHER",
+  "confidence": <float 0.0–1.0>,
+  "gaps": ["gap1", "gap2"],
+  "recommendations": ["rec1", "rec2"],
+  "summary": "One sentence summary."
+}}
 
-Provide:
-1. Risk assessment
-2. Compliance gaps
-3. Improvement suggestions
-"""
-
-        return await AIService.chat(analysis_prompt)
+Control description:
+{description}"""
+        return await AIService.chat(json_prompt)

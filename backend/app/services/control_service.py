@@ -38,13 +38,17 @@ class ControlService:
 
         logger.info(f"Control created: {db_obj.id}")
 
-        # 🔹 Background AI execution
+        # 🔹 Background AI execution — Celery preferred, asyncio fallback
         if db_obj.description:
-            asyncio.create_task(
-                ControlService._background_ai_task(
-                    db_obj.id, db_obj.description
+            try:
+                from app.tasks.ai_tasks import run_ai_analysis
+                run_ai_analysis.delay(str(db_obj.id), db_obj.description)
+                logger.debug("Dispatched AI task via Celery for control %s", db_obj.id)
+            except Exception as exc:  # Celery/Redis not available (dev without Redis)
+                logger.warning("Celery unavailable (%s), falling back to asyncio", exc)
+                asyncio.create_task(
+                    ControlService._background_ai_task(db_obj.id, db_obj.description)
                 )
-            )
 
         # 🔹 Audit log
         await AuditService.log(
@@ -69,31 +73,49 @@ class ControlService:
     async def _background_ai_task(control_id: UUID, description: str):
 
         from app.db.database import AsyncSessionLocal
+        import json
 
         async with AsyncSessionLocal() as db:
             try:
-                analysis = await AIService.analyze_control(description)
+                raw = await AIService.analyze_control(description)
 
-                stmt = select(InternalControl).where(
-                    InternalControl.id == control_id
-                )
-                result = await db.execute(stmt)
-                control = result.scalars().first()
+                stmt = select(InternalControl).where(InternalControl.id == control_id)
+                control = (await db.execute(stmt)).scalars().first()
+                if not control:
+                    return
 
-                if control:
-                    control.ai_analysis = analysis
-                    analysis_lower = analysis.lower()
-                    if "high risk" in analysis_lower:
-                        control.risk_score = control.risk_score.__class__.HIGH
-                    elif "medium risk" in analysis_lower:
-                        control.risk_score = control.risk_score.__class__.MEDIUM
-                    elif "low risk" in analysis_lower:
-                        control.risk_score = control.risk_score.__class__.LOW
-                    await db.commit()
-                    logger.info(f"AI analysis saved for control {control_id}")
+                # Store raw response as the human-readable analysis
+                control.ai_analysis = raw
+
+                # Try to parse structured JSON
+                try:
+                    data = json.loads(raw)
+                    suggested = data.get("suggested_risk", "").upper()
+                    if suggested in ("HIGH", "MEDIUM", "LOW"):
+                        control.ai_suggested_risk = suggested
+                        # Also update the actual risk_score if AI confidence is high
+                        confidence = float(data.get("confidence", 0))
+                        if confidence >= 0.75:
+                            control.risk_score = control.risk_score.__class__[suggested]
+                    control.ai_category   = data.get("category", None)
+                    control.ai_confidence = float(data.get("confidence", 0)) if "confidence" in data else None
+                    # Rebuild human-readable analysis from structured data
+                    gaps  = data.get("gaps", [])
+                    recs  = data.get("recommendations", [])
+                    summ  = data.get("summary", "")
+                    control.ai_analysis = (
+                        f"{summ}\n\n"
+                        + ("Gaps:\n" + "\n".join(f"• {g}" for g in gaps) + "\n\n" if gaps else "")
+                        + ("Recommendations:\n" + "\n".join(f"• {r}" for r in recs) if recs else "")
+                    ).strip()
+                except (json.JSONDecodeError, ValueError, KeyError):
+                    logger.debug("AI returned non-JSON for control %s — storing raw text", control_id)
+
+                await db.commit()
+                logger.info("AI analysis saved for control %s", control_id)
 
             except Exception as e:
-                logger.error(f"AI background task failed: {e}")
+                logger.error("AI background task failed for control %s: %s", control_id, e)
 
     @staticmethod
     async def get_multi(

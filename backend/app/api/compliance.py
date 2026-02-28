@@ -14,13 +14,27 @@ async def get_compliance_score(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-
     score = await ComplianceService.calculate_score(
         db=db,
         organization_id=current_user.organization_id,
     )
-
     return {
         "organization_id": str(current_user.organization_id),
-        "compliance_score": score
+        "compliance_score": score,
     }
+
+
+@router.get("/score/detailed")
+async def get_compliance_score_detailed(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Returns full risk-weighted compliance breakdown:
+    score, grade, by_status counts, risk matrix, high-risk gaps,
+    max potential score gain, and trend snapshots.
+    """
+    return await ComplianceService.calculate_score_detailed(
+        db=db,
+        organization_id=current_user.organization_id,
+    )

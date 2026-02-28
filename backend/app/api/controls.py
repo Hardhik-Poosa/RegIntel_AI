@@ -83,6 +83,30 @@ async def update_control(
     )
 
 
+@router.get("/{control_id}/ai-status")
+async def get_ai_status(
+    control_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Returns AI analysis status for a control: none | pending | done."""
+    control = await ControlService.get_by_id(
+        db=db,
+        control_id=control_id,
+        organization_id=current_user.organization_id,
+    )
+    if not control:
+        raise HTTPException(status_code=404, detail="Control not found")
+    if control.ai_analysis:
+        return {"status": "done", "ai_analysis": control.ai_analysis,
+                "ai_suggested_risk": control.ai_suggested_risk,
+                "ai_category": control.ai_category,
+                "ai_confidence": control.ai_confidence}
+    if control.description:
+        return {"status": "pending"}
+    return {"status": "none"}
+
+
 @router.delete("/{control_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_control(
     control_id: UUID,

@@ -30,5 +30,6 @@ COPY . .
 # Railway injects $PORT at runtime
 EXPOSE ${PORT:-8000}
 
-# Run migrations then start server
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Migrations run via Procfile (web: alembic upgrade head && uvicorn ...)
+# Dockerfile only starts the app — no double migration risk.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

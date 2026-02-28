@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Modal }        from 'bootstrap'
 import { controlsAPI }  from '../services/api'
 import { RiskBadge, StatusBadge } from '../components/RiskBadge'
@@ -10,10 +10,82 @@ import { formatDate, truncate } from '../utils/helpers'
 // ── Empty form shape ───────────────────────────────────
 const EMPTY_FORM = { title: '', description: '', status: 'MISSING', risk_score: 'MEDIUM' }
 
-// ── Inline expandable AI section ───────────────────────
-function AISection({ text }) {
+const RISK_COLOR = { HIGH: '#f85149', MEDIUM: '#d29922', LOW: '#3fb950' }
+
+// ── AI insight badges ─────────────────────────────────────────────────────────
+function AIBadges({ ctrl, onRefresh }) {
+  const [refreshing, setRefreshing] = useState(false)
+
+  async function doRefresh() {
+    setRefreshing(true)
+    try {
+      const { data } = await controlsAPI.getAIStatus(ctrl.id)
+      if (data.status === 'done') onRefresh(ctrl.id, data)
+    } catch (_) { /* silent */ }
+    finally { setRefreshing(false) }
+  }
+
+  if (!ctrl.ai_analysis && ctrl.description) {
+    return (
+      <div className="d-flex align-items-center gap-2">
+        <span style={{ fontSize: '0.72rem', color: '#8b949e', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span className="spinner-border spinner-border-sm" style={{ width: 10, height: 10, borderWidth: 1.5, color: '#4f8ef7' }} />
+          AI processing…
+        </span>
+        <button
+          className="btn btn-sm p-0"
+          style={{ color: '#4f8ef7', fontSize: '0.72rem', lineHeight: 1, background: 'none', border: 'none' }}
+          onClick={doRefresh} disabled={refreshing} title="Check AI status"
+        >
+          {refreshing ? '…' : '↻'}
+        </button>
+      </div>
+    )
+  }
+
+  if (!ctrl.ai_analysis) {
+    return <span style={{ color: '#484f58', fontSize: '0.8rem' }}>— no analysis</span>
+  }
+
+  return (
+    <div>
+      <div className="d-flex flex-wrap gap-1 mb-1">
+        {ctrl.ai_category && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 600, padding: '1px 7px', borderRadius: 20,
+            background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.25)',
+          }}>
+            {ctrl.ai_category}
+          </span>
+        )}
+        {ctrl.ai_confidence != null && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 600, padding: '1px 7px', borderRadius: 20,
+            background: 'rgba(139,148,158,0.1)', color: '#8b949e', border: '1px solid #30363d',
+          }}>
+            {Math.round(ctrl.ai_confidence * 100)}% conf.
+          </span>
+        )}
+        {ctrl.ai_suggested_risk && ctrl.ai_suggested_risk !== ctrl.risk_score && (
+          <span style={{
+            fontSize: '0.68rem', fontWeight: 700, padding: '1px 7px', borderRadius: 20,
+            background: `${RISK_COLOR[ctrl.ai_suggested_risk]}22`,
+            color: RISK_COLOR[ctrl.ai_suggested_risk],
+            border: `1px solid ${RISK_COLOR[ctrl.ai_suggested_risk]}44`,
+          }}>
+            AI: {ctrl.ai_suggested_risk}
+          </span>
+        )}
+      </div>
+      <AITextSection text={ctrl.ai_analysis} />
+    </div>
+  )
+}
+
+// ── Inline expandable AI text ─────────────────────────────────────────────────
+function AITextSection({ text }) {
   const [open, setOpen] = useState(false)
-  if (!text) return <span style={{ color: '#484f58', fontSize: '0.8rem' }}>— no analysis</span>
+  if (!text) return null
   return (
     <div>
       <button className="rg-expand-btn" onClick={() => setOpen((v) => !v)}>
@@ -144,6 +216,55 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
                   </select>
                 </div>
               </div>
+
+              {/* AI Insights — read-only, shown only when editing a control with AI data */}
+              {editTarget && (editTarget.ai_analysis || editTarget.ai_suggested_risk || editTarget.ai_category) && (
+                <div className="mt-4 pt-3" style={{ borderTop: '1px solid #21262d' }}>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <i className="bi bi-robot" style={{ color: '#bc8cff', fontSize: '0.85rem' }} />
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#bc8cff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      AI Insights
+                    </span>
+                  </div>
+                  <div className="d-flex flex-wrap gap-2 mb-2">
+                    {editTarget.ai_category && (
+                      <span style={{
+                        fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                        background: 'rgba(79,142,247,0.12)', color: '#4f8ef7', border: '1px solid rgba(79,142,247,0.25)',
+                      }}>
+                        <i className="bi bi-tag me-1" />{editTarget.ai_category}
+                      </span>
+                    )}
+                    {editTarget.ai_suggested_risk && (
+                      <span style={{
+                        fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                        background: `${RISK_COLOR[editTarget.ai_suggested_risk]}22`,
+                        color: RISK_COLOR[editTarget.ai_suggested_risk],
+                        border: `1px solid ${RISK_COLOR[editTarget.ai_suggested_risk]}44`,
+                      }}>
+                        <i className="bi bi-exclamation-circle me-1" />Suggested: {editTarget.ai_suggested_risk}
+                      </span>
+                    )}
+                    {editTarget.ai_confidence != null && (
+                      <span style={{
+                        fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                        background: 'rgba(139,148,158,0.1)', color: '#8b949e', border: '1px solid #30363d',
+                      }}>
+                        <i className="bi bi-speedometer me-1" />{Math.round(editTarget.ai_confidence * 100)}% confidence
+                      </span>
+                    )}
+                  </div>
+                  {editTarget.ai_analysis && (
+                    <div style={{
+                      fontSize: '0.78rem', color: '#8b949e', background: '#0d1117',
+                      border: '1px solid #21262d', borderRadius: 8, padding: '0.75rem',
+                      whiteSpace: 'pre-wrap', maxHeight: 160, overflowY: 'auto',
+                    }}>
+                      {editTarget.ai_analysis}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">
@@ -239,6 +360,13 @@ export default function Controls() {
 
   const ctrlModalEl   = useRef(null)
   const deleteModalEl = useRef(null)
+
+  // Patch a single control's AI fields after a status refresh
+  const patchControl = useCallback((id, aiData) => {
+    setControls((prev) =>
+      prev.map((c) => c.id === id ? { ...c, ...aiData } : c)
+    )
+  }, [])
 
   // Fetch controls
   async function fetchControls() {
@@ -398,7 +526,7 @@ export default function Controls() {
                       <td><StatusBadge status={ctrl.status} /></td>
                       <td><RiskBadge risk={ctrl.risk_score} /></td>
                       <td style={{ maxWidth: '240px' }}>
-                        <AISection text={ctrl.ai_analysis} />
+                        <AIBadges ctrl={ctrl} onRefresh={patchControl} />
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatDate(ctrl.created_at)}</td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>

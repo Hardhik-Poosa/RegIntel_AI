@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.auth import router as auth_router
 from app.db.database import engine
@@ -9,9 +10,10 @@ from app.api import audit
 from app.api import compliance
 from app.api import dashboard
 from app.core.logging import setup_logging
-
+import logging
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -45,6 +47,23 @@ async def startup():
 @app.get("/")
 async def root():
     return {"message": "Welcome to RegIntel AI API"}
+
+
+@app.get("/health", tags=["health"])
+async def health_check():
+    """Liveness probe — returns 200 when the app is running."""
+    return {"status": "ok", "environment": settings.ENVIRONMENT}
+
+
+# —— Production: suppress internal error details in responses ———————————————————————
+if settings.ENVIRONMENT == "production":
+    @app.exception_handler(Exception)
+    async def production_exception_handler(request: Request, exc: Exception):
+        logger.exception("Unhandled error on %s", request.url)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "An unexpected error occurred. Our team has been notified."},
+        )
 
 from app.api.users import router as users_router
 

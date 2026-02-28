@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, String, Text, ForeignKey, Enum, Integer
+from sqlalchemy import Column, String, Text, ForeignKey, Enum, Integer, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -51,6 +51,11 @@ class InternalControl(Base, UUIDMixin, TimestampMixin):
 
     # AI STORAGE
     ai_analysis = Column(Text, nullable=True)
+
+    # Structured AI intelligence fields (populated by background task)
+    ai_suggested_risk = Column(String, nullable=True)   # HIGH / MEDIUM / LOW
+    ai_category       = Column(String, nullable=True)   # e.g. ACCESS_CONTROL
+    ai_confidence     = Column(Float,  nullable=True)   # 0.0 – 1.0
 
     # Compliance scoring
     compliance_score = Column(Integer, default=0, nullable=False)

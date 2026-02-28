@@ -8,7 +8,7 @@ const navItems = [
   { to: '/compliance',  icon: 'bi-bar-chart-fill',        label: 'Compliance'  },
   { to: '/audit',       icon: 'bi-clock-history',         label: 'Audit Logs'  },
   { to: '/ai',          icon: 'bi-robot',                 label: 'AI Insights' },
-  { to: '/admin',       icon: 'bi-speedometer2',          label: 'Admin'       },
+  { to: '/settings',    icon: 'bi-gear',                  label: 'Settings'    },
 ]
 
 /**
@@ -18,6 +18,7 @@ const navItems = [
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const isAdmin = user?.role === 'ADMIN'
 
   function handleLogout() {
     logout()
@@ -67,6 +68,18 @@ export default function Sidebar({ open, onClose }) {
               {label}
             </NavLink>
           ))}
+
+          {/* Admin — only visible to ADMIN role users */}
+          {isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => `rg-nav-item ${isActive ? 'active' : ''}`}
+              onClick={onClose}
+            >
+              <i className="bi bi-speedometer2" />
+              Admin
+            </NavLink>
+          )}
         </nav>
 
         {/* User footer */}
