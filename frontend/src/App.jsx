@@ -3,6 +3,7 @@ import { AuthProvider }  from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import ProtectedRoute    from './components/ProtectedRoute'
 import MainLayout        from './layouts/MainLayout'
+import ErrorBoundary     from './components/ErrorBoundary'
 
 // Pages
 import Login      from './pages/Login'
@@ -12,13 +13,15 @@ import Controls   from './pages/Controls'
 import Audit      from './pages/Audit'
 import AIInsights from './pages/AIInsights'
 import Compliance from './pages/Compliance'
+import Admin      from './pages/Admin'
 import NotFound   from './pages/NotFound'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
           <Routes>
             {/* ── Public ──────────────────────────────────── */}
             <Route path="/login"    element={<Login />}    />
@@ -38,6 +41,7 @@ export default function App() {
               <Route path="/compliance" element={<Compliance />} />
               <Route path="/audit"      element={<Audit />}      />
               <Route path="/ai"         element={<AIInsights />} />
+              <Route path="/admin"      element={<Admin />}      />
             </Route>
 
             {/* ── Catch-all ───────────────────────────────── */}
@@ -47,5 +51,6 @@ export default function App() {
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }

@@ -1,18 +1,25 @@
 import httpx
+from app.core.config import settings
 
 
 class AIService:
-    BASE_URL = "http://127.0.0.1:1234/v1/chat/completions"
-    MODEL = "qwen2.5-coder-7b-instruct"
+    @property
+    def BASE_URL(self):
+        return settings.AI_BASE_URL
+
+    @property
+    def MODEL(self):
+        return settings.AI_MODEL
 
     @staticmethod
     async def chat(prompt: str) -> str:
+        svc = AIService()
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
-                    AIService.BASE_URL,
+                    svc.BASE_URL,
                     json={
-                        "model": AIService.MODEL,
+                        "model": svc.MODEL,
                         "messages": [
                             {
                                 "role": "system",

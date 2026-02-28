@@ -1,0 +1,55 @@
+# ── Environment files (NEVER commit real secrets) ────────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+backend/.env
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+.Python
+pip-log.txt
+*.log
+
+# ── Node.js ───────────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── VS Code ───────────────────────────────────────────────────────────────────
+.vscode/
+*.code-workspace
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── Testing / Coverage ────────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# ── Alembic ───────────────────────────────────────────────────────────────────
+backend/alembic/versions/*.pyc
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+*.dockerignore

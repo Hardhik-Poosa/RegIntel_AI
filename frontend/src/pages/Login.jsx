@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import AlertMessage from '../components/AlertMessage'
+import { isValidEmail } from '../utils/helpers'
 
 export default function Login() {
   const { login }       = useAuth()
@@ -18,6 +19,17 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+
+    // Client-side validation before hitting the API
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    if (!password.trim()) {
+      setError('Please enter your password.')
+      return
+    }
+
     setLoading(true)
     try {
       await login(email.trim(), password)

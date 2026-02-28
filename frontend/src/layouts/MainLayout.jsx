@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
+import FeedbackButton from '../components/FeedbackButton'
 
 /**
  * Root layout for authenticated pages.
@@ -20,6 +21,8 @@ export default function MainLayout() {
           <Outlet />
         </main>
       </div>
+
+      <FeedbackButton />
     </div>
   )
 }

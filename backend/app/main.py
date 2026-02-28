@@ -19,9 +19,11 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# In production, ALLOWED_ORIGINS must be set to your frontend domain.
+# Example: ALLOWED_ORIGINS=["https://app.regintel.ai"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,3 +75,6 @@ app.include_router(
 app.include_router(audit.router, prefix="/api/v1")
 app.include_router(compliance.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+
+from app.api import admin as admin_module
+app.include_router(admin_module.router, prefix="/api/v1/admin", tags=["admin"])

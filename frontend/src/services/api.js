@@ -4,10 +4,36 @@ import axios from 'axios'
 //  Axios instance — all requests automatically get the
 //  Bearer token injected via the request interceptor.
 // ──────────────────────────────────────────────────────
+// In production (Vercel), set VITE_API_URL to your Railway/Render backend URL.
+// In development, the Vite proxy forwards /api → localhost:8000.
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL ?? '/api/v1',
   timeout: 15000,
 })
+
+/**
+ * Normalise any Axios error into a user-friendly string.
+ * Never exposes raw stack traces or internal JSON to the UI.
+ *
+ * @param {import('axios').AxiosError} err
+ * @param {string}                     [fallback]
+ * @returns {string}
+ */
+export function getErrorMessage(err, fallback = 'An unexpected error occurred.') {
+  if (!err?.response) {
+    // Network offline / DNS failure / CORS / timeout
+    if (err?.code === 'ECONNABORTED') return 'Request timed out. Please try again.'
+    return 'Cannot connect to the server. Check your internet connection.'
+  }
+  const status = err.response.status
+  if (status === 401) return 'Your session has expired. Please log in again.'
+  if (status === 403) return "You don't have permission to perform this action."
+  if (status === 404) return 'The requested resource was not found.'
+  if (status === 409) return err?.response?.data?.detail ?? 'A conflict occurred. The record may already exist.'
+  if (status === 422) return 'Invalid data submitted. Please check your inputs.'
+  if (status >= 500) return 'Something went wrong on the server. Please try again later.'
+  return err?.response?.data?.detail ?? fallback
+}
 
 // ── Request interceptor: attach token ──────────────────
 api.interceptors.request.use(
@@ -99,6 +125,13 @@ export const complianceAPI = {
 // ──────────────────────────────────────────────────────
 export const aiAPI = {
   chat: (prompt) => api.post('/ai/chat', null, { params: { prompt } }),
+}
+
+// ──────────────────────────────────────────────────────
+//  Admin (internal observability)
+// ──────────────────────────────────────────────────────
+export const adminAPI = {
+  getStats: () => api.get('/admin/stats'),
 }
 
 export default api

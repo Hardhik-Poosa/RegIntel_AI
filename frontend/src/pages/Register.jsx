@@ -51,6 +51,8 @@ export default function Register() {
           industry: form.industry || null,
         },
       })
+      // Flag for onboarding tour on first dashboard visit
+      localStorage.setItem('rg_onboarding', 'true')
       setSuccess('Account created! Redirecting to login…')
       setTimeout(() => navigate('/login'), 1800)
     } catch (err) {

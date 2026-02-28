@@ -3,10 +3,9 @@ import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, Tooltip, PieChart, Pie, Legend,
 } from 'recharts'
-import { dashboardAPI, complianceAPI } from '../services/api'
+import { dashboardAPI, complianceAPI, getErrorMessage } from '../services/api'
 import { ComplianceDonut, ComplianceBar } from '../components/ComplianceBar'
-import LoadingSpinner from '../components/LoadingSpinner'
-import AlertMessage   from '../components/AlertMessage'
+import ErrorScreen from '../components/ErrorScreen'
 import { getScoreColor } from '../utils/helpers'
 
 const COLORS = ['#3fb950', '#d29922', '#f85149']
@@ -30,6 +29,7 @@ export default function Compliance() {
   const [summary, setSummary]   = useState(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
+  const [errorType, setErrorType] = useState('500')
 
   useEffect(() => {
     let cancelled = false
@@ -45,7 +45,11 @@ export default function Compliance() {
           setSummary({ ...dashRes.data, ...scoreRes.data })
         }
       } catch (err) {
-        if (!cancelled) setError(err?.response?.data?.detail ?? 'Failed to load compliance data.')
+        if (!cancelled) {
+          const type = !err?.response ? 'offline' : err?.response?.status === 403 ? '403' : '500'
+          setErrorType(type)
+          setError(getErrorMessage(err, 'Failed to load compliance data.'))
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -54,8 +58,53 @@ export default function Compliance() {
     return () => { cancelled = true }
   }, [])
 
-  if (loading) return <LoadingSpinner text="Loading compliance analytics…" />
-  if (error)   return <AlertMessage type="error" message={error} />
+  if (loading) {
+    return (
+      <div>
+        <div className="mb-4">
+          <div className="rg-skeleton" style={{ width: '200px', height: '20px', marginBottom: '8px' }} />
+          <div className="rg-skeleton" style={{ width: '300px', height: '14px' }} />
+        </div>
+        <div className="row g-3 mb-4">
+          <div className="col-12 col-lg-4">
+            <div className="rg-card d-flex flex-column align-items-center" style={{ minHeight: '220px', justifyContent: 'center' }}>
+              <div className="rg-skeleton" style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '1rem' }} />
+              <div className="rg-skeleton" style={{ width: '80px', height: '14px', marginBottom: '0.5rem' }} />
+              <div className="rg-skeleton" style={{ width: '50px', height: '32px' }} />
+            </div>
+          </div>
+          <div className="col-12 col-lg-8">
+            <div className="row g-3">
+              {[...Array(4)].map((_, i) => (
+                <div className="col-6" key={i}>
+                  <div className="rg-card">
+                    <div className="rg-skeleton" style={{ width: '40%', height: '28px', marginBottom: '8px' }} />
+                    <div className="rg-skeleton" style={{ width: '70%', height: '13px' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="rg-card mb-4" style={{ minHeight: '80px' }}>
+          <div className="rg-skeleton" style={{ width: '180px', height: '14px', marginBottom: '1rem' }} />
+          <div className="rg-skeleton" style={{ width: '100%', height: '20px', borderRadius: '10px' }} />
+        </div>
+        <div className="row g-3">
+          {[...Array(2)].map((_, i) => (
+            <div className="col-12 col-lg-6" key={i}>
+              <div className="rg-card" style={{ minHeight: '240px' }}>
+                <div className="rg-skeleton" style={{ width: '55%', height: '14px', marginBottom: '1rem' }} />
+                <div className="rg-skeleton" style={{ width: '100%', height: '200px', borderRadius: '8px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) return <ErrorScreen type={errorType} message={error} />
 
   const score = summary?.compliance_score ?? 0
   const color = getScoreColor(score)

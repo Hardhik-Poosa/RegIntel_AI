@@ -132,8 +132,14 @@ export default function Audit() {
           <div className="rg-card">
             <div className="rg-empty">
               <i className="bi bi-clock-history" />
-              <div className="rg-empty-title">No audit logs found</div>
-              <p style={{ fontSize: '0.82rem' }}>Try adjusting your filters.</p>
+              <div className="rg-empty-title">
+                {logs.length === 0 ? 'No activity yet' : 'No results found'}
+              </div>
+              <p style={{ fontSize: '0.82rem' }}>
+                {logs.length === 0
+                  ? 'Audit logs appear here as you create, update, or delete controls.'
+                  : 'Try adjusting your search or filters.'}
+              </p>
             </div>
           </div>
         ) : (

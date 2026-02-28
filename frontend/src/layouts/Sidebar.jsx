@@ -8,6 +8,7 @@ const navItems = [
   { to: '/compliance',  icon: 'bi-bar-chart-fill',        label: 'Compliance'  },
   { to: '/audit',       icon: 'bi-clock-history',         label: 'Audit Logs'  },
   { to: '/ai',          icon: 'bi-robot',                 label: 'AI Insights' },
+  { to: '/admin',       icon: 'bi-speedometer2',          label: 'Admin'       },
 ]
 
 /**

@@ -3,6 +3,16 @@
  */
 
 /**
+ * Validate an email address format.
+ * Returns true when the string looks like a valid email.
+ * @param {string} email
+ * @returns {boolean}
+ */
+export function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email ?? '').trim())
+}
+
+/**
  * Return the Bootstrap/custom colour class for a risk level.
  * @param {'HIGH'|'MEDIUM'|'LOW'} risk
  */
