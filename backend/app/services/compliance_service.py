@@ -154,3 +154,16 @@ class ComplianceService:
 
         await db.commit()
         logger.debug("Compliance score updated: org=%s score=%d", organization_id, score)
+
+    @staticmethod
+    async def take_snapshot(db: AsyncSession, organization_id: UUID) -> int:
+        """
+        Calculate current compliance score and persist a snapshot row.
+        Used by the Celery Beat daily_compliance_snapshot task.
+        Returns the score.
+        """
+        score = await ComplianceService.calculate_score(db, organization_id)
+        snapshot = ComplianceSnapshot(organization_id=organization_id, score=score)
+        db.add(snapshot)
+        await db.commit()
+        return score

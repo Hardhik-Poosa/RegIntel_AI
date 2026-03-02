@@ -71,51 +71,13 @@ class ControlService:
 
     @staticmethod
     async def _background_ai_task(control_id: UUID, description: str):
-
-        from app.db.database import AsyncSessionLocal
-        import json
-
-        async with AsyncSessionLocal() as db:
-            try:
-                raw = await AIService.analyze_control(description)
-
-                stmt = select(InternalControl).where(InternalControl.id == control_id)
-                control = (await db.execute(stmt)).scalars().first()
-                if not control:
-                    return
-
-                # Store raw response as the human-readable analysis
-                control.ai_analysis = raw
-
-                # Try to parse structured JSON
-                try:
-                    data = json.loads(raw)
-                    suggested = data.get("suggested_risk", "").upper()
-                    if suggested in ("HIGH", "MEDIUM", "LOW"):
-                        control.ai_suggested_risk = suggested
-                        # Also update the actual risk_score if AI confidence is high
-                        confidence = float(data.get("confidence", 0))
-                        if confidence >= 0.75:
-                            control.risk_score = control.risk_score.__class__[suggested]
-                    control.ai_category   = data.get("category", None)
-                    control.ai_confidence = float(data.get("confidence", 0)) if "confidence" in data else None
-                    # Rebuild human-readable analysis from structured data
-                    gaps  = data.get("gaps", [])
-                    recs  = data.get("recommendations", [])
-                    summ  = data.get("summary", "")
-                    control.ai_analysis = (
-                        f"{summ}\n\n"
-                        + ("Gaps:\n" + "\n".join(f"• {g}" for g in gaps) + "\n\n" if gaps else "")
-                        + ("Recommendations:\n" + "\n".join(f"• {r}" for r in recs) if recs else "")
-                    ).strip()
-                except (json.JSONDecodeError, ValueError, KeyError):
-                    logger.debug("AI returned non-JSON for control %s — storing raw text", control_id)
-
-                await db.commit()
-                logger.info("AI analysis saved for control %s", control_id)
-
-            except Exception as e:
-                logger.error("AI background task failed for control %s: %s", control_id, e)
+        """
+        asyncio fallback — delegates to the same implementation used by the Celery task.
+        This ensures ai_status lifecycle (pending → processing → done/failed) is consistent
+        whether we're running with Redis+Celery or plain asyncio in local dev.
+        """
+        from app.tasks.ai_tasks import _run_ai_analysis
+        await _run_ai_analysis(str(control_id), description)
 
     @staticmethod
     async def get_multi(

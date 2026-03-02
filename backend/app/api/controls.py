@@ -97,14 +97,20 @@ async def get_ai_status(
     )
     if not control:
         raise HTTPException(status_code=404, detail="Control not found")
-    if control.ai_analysis:
-        return {"status": "done", "ai_analysis": control.ai_analysis,
-                "ai_suggested_risk": control.ai_suggested_risk,
-                "ai_category": control.ai_category,
-                "ai_confidence": control.ai_confidence}
-    if control.description:
-        return {"status": "pending"}
-    return {"status": "none"}
+
+    # Use the explicit ai_status field (pending/processing/done/failed)
+    ai_status = getattr(control, "ai_status", None) or (
+        "done" if control.ai_analysis else ("pending" if control.description else "none")
+    )
+    response: dict = {"status": ai_status}
+    if ai_status == "done":
+        response.update({
+            "ai_analysis":       control.ai_analysis,
+            "ai_suggested_risk": control.ai_suggested_risk,
+            "ai_category":       control.ai_category,
+            "ai_confidence":     control.ai_confidence,
+        })
+    return response
 
 
 @router.delete("/{control_id}", status_code=status.HTTP_204_NO_CONTENT)

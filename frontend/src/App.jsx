@@ -15,6 +15,8 @@ import AIInsights from './pages/AIInsights'
 import Compliance from './pages/Compliance'
 import Admin      from './pages/Admin'
 import OrgSettings from './pages/OrgSettings'
+import Frameworks from './pages/Frameworks'
+import Copilot   from './pages/Copilot'
 import NotFound   from './pages/NotFound'
 
 export default function App() {
@@ -44,6 +46,8 @@ export default function App() {
               <Route path="/ai"         element={<AIInsights />} />
               <Route path="/admin"      element={<Admin />}      />
               <Route path="/settings"   element={<OrgSettings />} />
+              <Route path="/frameworks" element={<Frameworks />} />
+              <Route path="/copilot"    element={<Copilot />}   />
             </Route>
 
             {/* ── Catch-all ───────────────────────────────── */}

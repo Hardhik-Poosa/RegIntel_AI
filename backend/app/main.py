@@ -97,3 +97,25 @@ app.include_router(dashboard.router, prefix="/api/v1")
 
 from app.api import admin as admin_module
 app.include_router(admin_module.router, prefix="/api/v1/admin", tags=["admin"])
+
+# ── Phase 4 routes ─────────────────────────────────────────────────────────────
+from app.api.frameworks import router as frameworks_router
+app.include_router(
+    frameworks_router,
+    prefix=f"{settings.API_V1_STR}/frameworks",
+    tags=["frameworks"],
+)
+
+from app.api.copilot import router as copilot_router
+app.include_router(
+    copilot_router,
+    prefix=f"{settings.API_V1_STR}/copilot",
+    tags=["copilot"],
+)
+
+from app.api.risk import router as risk_router
+app.include_router(
+    risk_router,
+    prefix=f"{settings.API_V1_STR}/risk",
+    tags=["risk"],
+)

@@ -20,8 +20,9 @@ class AIService:
         return settings.AI_MODEL
 
     @staticmethod
-    async def chat(prompt: str) -> str:
+    async def chat(prompt: str, system_prompt: str | None = None) -> str:
         svc = AIService()
+        system = system_prompt or "You are an intelligent compliance AI assistant."
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
@@ -29,14 +30,8 @@ class AIService:
                     json={
                         "model": svc.MODEL,
                         "messages": [
-                            {
-                                "role": "system",
-                                "content": "You are an intelligent compliance AI assistant."
-                            },
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
+                            {"role": "system",  "content": system},
+                            {"role": "user",    "content": prompt}
                         ],
                         "temperature": 0.3
                     }

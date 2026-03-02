@@ -147,4 +147,27 @@ export const usersAPI = {
   remove:      (userId)          => api.delete(`/users/${userId}`),
 }
 
+// ──────────────────────────────────────────────────────
+//  Compliance Frameworks
+// ──────────────────────────────────────────────────────
+export const frameworksAPI = {
+  list:      (category) => api.get('/frameworks/', { params: category ? { category } : {} }),
+  getById:   (id)       => api.get(`/frameworks/${id}`),
+}
+
+// ──────────────────────────────────────────────────────
+//  AI Compliance Copilot
+// ──────────────────────────────────────────────────────
+export const copilotAPI = {
+  ask:     (question) => api.post('/copilot/ask', { question }),
+  context: ()         => api.get('/copilot/context'),
+}
+
+// ──────────────────────────────────────────────────────
+//  Risk Forecasting
+// ──────────────────────────────────────────────────────
+export const riskAPI = {
+  forecast: () => api.get('/risk/forecast'),
+}
+
 export default api

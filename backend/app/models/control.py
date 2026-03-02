@@ -6,6 +6,13 @@ from sqlalchemy.orm import relationship
 from app.models.base import Base, UUIDMixin, TimestampMixin
 
 
+class AIStatus(str, enum.Enum):
+    PENDING    = "pending"
+    PROCESSING = "processing"
+    DONE       = "done"
+    FAILED     = "failed"
+
+
 class ControlStatus(str, enum.Enum):
     IMPLEMENTED = "IMPLEMENTED"
     PARTIAL = "PARTIAL"
@@ -49,10 +56,17 @@ class InternalControl(Base, UUIDMixin, TimestampMixin):
         nullable=False,
     )
 
-    # AI STORAGE
-    ai_analysis = Column(Text, nullable=True)
+    # Framework association (Phase 4)
+    framework_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("frameworks.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    framework = relationship("ComplianceFramework", back_populates="controls")
 
-    # Structured AI intelligence fields (populated by background task)
+    # AI pipeline fields
+    ai_status         = Column(String, default="pending", nullable=False, server_default="pending")
+    ai_analysis       = Column(Text,   nullable=True)
     ai_suggested_risk = Column(String, nullable=True)   # HIGH / MEDIUM / LOW
     ai_category       = Column(String, nullable=True)   # e.g. ACCESS_CONTROL
     ai_confidence     = Column(Float,  nullable=True)   # 0.0 – 1.0

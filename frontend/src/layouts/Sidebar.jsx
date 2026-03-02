@@ -6,6 +6,8 @@ const navItems = [
   { to: '/dashboard',   icon: 'bi-grid-1x2-fill',        label: 'Dashboard'   },
   { to: '/controls',    icon: 'bi-shield-check',          label: 'Controls'    },
   { to: '/compliance',  icon: 'bi-bar-chart-fill',        label: 'Compliance'  },
+  { to: '/frameworks',  icon: 'bi-diagram-3-fill',        label: 'Frameworks'  },
+  { to: '/copilot',     icon: 'bi-chat-dots-fill',        label: 'AI Copilot'  },
   { to: '/audit',       icon: 'bi-clock-history',         label: 'Audit Logs'  },
   { to: '/ai',          icon: 'bi-robot',                 label: 'AI Insights' },
   { to: '/settings',    icon: 'bi-gear',                  label: 'Settings'    },
