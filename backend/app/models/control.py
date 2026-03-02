@@ -75,5 +75,6 @@ class InternalControl(Base, UUIDMixin, TimestampMixin):
     compliance_score = Column(Integer, default=0, nullable=False)
 
     # Relationships
-    organization = relationship("Organization")
-    created_by = relationship("User")
+    organization    = relationship("Organization")
+    created_by      = relationship("User")
+    evidence_files  = relationship("ControlEvidence", back_populates="control", cascade="all, delete-orphan")

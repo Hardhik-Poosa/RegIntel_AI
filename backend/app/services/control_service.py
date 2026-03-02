@@ -3,10 +3,13 @@ import logging
 from uuid import UUID
 from typing import List, Optional
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 
 from app.models.control import InternalControl
+from app.models.organization import Organization
 from app.schemas.control import ControlCreate, ControlUpdate
 from app.services.ai_service import AIService
 from app.services.audit_service import AuditService
@@ -25,6 +28,20 @@ class ControlService:
         organization_id: UUID,
         user_id: UUID,
     ) -> InternalControl:
+
+        # 🔹 Plan tier enforcement — check controls_limit
+        org = await db.get(Organization, organization_id)
+        count_result = await db.execute(
+            select(func.count()).select_from(InternalControl)
+            .where(InternalControl.organization_id == organization_id)
+        )
+        current_count = count_result.scalar() or 0
+        limit = org.controls_limit if org else 50
+        if current_count >= limit:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Control limit ({limit}) reached for your plan tier '{org.plan_tier if org else 'starter'}'. Upgrade to add more controls."
+            )
 
         db_obj = InternalControl(
             **obj_in.model_dump(),

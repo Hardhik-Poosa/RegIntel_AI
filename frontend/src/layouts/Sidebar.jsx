@@ -3,14 +3,23 @@ import { useAuth } from '../context/AuthContext'
 import { initials } from '../utils/helpers'
 
 const navItems = [
-  { to: '/dashboard',   icon: 'bi-grid-1x2-fill',        label: 'Dashboard'   },
-  { to: '/controls',    icon: 'bi-shield-check',          label: 'Controls'    },
-  { to: '/compliance',  icon: 'bi-bar-chart-fill',        label: 'Compliance'  },
-  { to: '/frameworks',  icon: 'bi-diagram-3-fill',        label: 'Frameworks'  },
-  { to: '/copilot',     icon: 'bi-chat-dots-fill',        label: 'AI Copilot'  },
-  { to: '/audit',       icon: 'bi-clock-history',         label: 'Audit Logs'  },
-  { to: '/ai',          icon: 'bi-robot',                 label: 'AI Insights' },
-  { to: '/settings',    icon: 'bi-gear',                  label: 'Settings'    },
+  { to: '/dashboard',    icon: 'bi-grid-1x2-fill',          label: 'Dashboard'    },
+  { to: '/controls',     icon: 'bi-shield-check',            label: 'Controls'     },
+  { to: '/frameworks',   icon: 'bi-diagram-3-fill',          label: 'Frameworks'   },
+  { to: '/library',      icon: 'bi-journals',                label: 'FW Library'   },
+  { to: '/evidence',     icon: 'bi-file-earmark-check',      label: 'Evidence'     },
+  { to: '/copilot',      icon: 'bi-chat-dots-fill',          label: 'AI Copilot'   },
+  { to: '/compliance',   icon: 'bi-bar-chart-fill',          label: 'Compliance'   },
+  { to: '/policies',     icon: 'bi-file-earmark-text-fill',  label: 'Policies'     },
+  { to: '/vendors',      icon: 'bi-building-check',          label: 'Vendors'      },
+  { to: '/monitoring',   icon: 'bi-activity',                label: 'Monitoring'   },
+  { to: '/alerts',       icon: 'bi-bell-fill',               label: 'Alerts'       },
+  { to: '/regulatory',   icon: 'bi-newspaper',               label: 'Regulatory'   },
+  { to: '/integrations', icon: 'bi-plug-fill',               label: 'Integrations' },
+  { to: '/reports',      icon: 'bi-file-earmark-bar-graph',  label: 'Reports'      },
+  { to: '/audit',        icon: 'bi-clock-history',           label: 'Audit Logs'   },
+  { to: '/ai',           icon: 'bi-robot',                   label: 'AI Insights'  },
+  { to: '/settings',     icon: 'bi-gear',                    label: 'Settings'     },
 ]
 
 /**

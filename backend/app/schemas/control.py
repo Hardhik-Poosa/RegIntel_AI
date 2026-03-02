@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import datetime
+from typing import Optional
 
 from app.models.control import ControlStatus, ControlRisk
 
@@ -13,7 +14,7 @@ class ControlBase(BaseModel):
 
 
 class ControlCreate(ControlBase):
-    pass
+    framework_id: Optional[UUID] = None
 
 
 class ControlUpdate(BaseModel):
@@ -21,6 +22,7 @@ class ControlUpdate(BaseModel):
     description: str | None = None
     status: ControlStatus | None = None
     risk_score: ControlRisk | None = None
+    framework_id: Optional[UUID] = None
 
 
 class ControlResponse(ControlBase):

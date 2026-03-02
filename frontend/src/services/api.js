@@ -148,14 +148,6 @@ export const usersAPI = {
 }
 
 // ──────────────────────────────────────────────────────
-//  Compliance Frameworks
-// ──────────────────────────────────────────────────────
-export const frameworksAPI = {
-  list:      (category) => api.get('/frameworks/', { params: category ? { category } : {} }),
-  getById:   (id)       => api.get(`/frameworks/${id}`),
-}
-
-// ──────────────────────────────────────────────────────
 //  AI Compliance Copilot
 // ──────────────────────────────────────────────────────
 export const copilotAPI = {
@@ -168,6 +160,85 @@ export const copilotAPI = {
 // ──────────────────────────────────────────────────────
 export const riskAPI = {
   forecast: () => api.get('/risk/forecast'),
+}
+
+// ──────────────────────────────────────────────────────
+//  Evidence Management
+// ──────────────────────────────────────────────────────
+export const evidenceAPI = {
+  list:   (controlId)  => api.get(`/evidence/${controlId}`),
+  upload: (controlId, formData) =>
+    api.post(`/evidence/upload/${controlId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  getItem: (evidenceId) => api.get(`/evidence/item/${evidenceId}`),
+  delete:  (evidenceId) => api.delete(`/evidence/${evidenceId}`),
+}
+
+// ──────────────────────────────────────────────────────
+//  Integrations
+// ──────────────────────────────────────────────────────
+export const integrationsAPI = {
+  list:         ()             => api.get('/integrations/'),
+  scanGitHub:   (repo, token)  => api.post('/integrations/github/scan', { repo, token }),
+}
+
+export const frameworksAPI = {
+  list:            (category) => api.get('/frameworks/',          { params: category ? { category } : {} }),
+  getById:         (id)       => api.get(`/frameworks/${id}`),
+  listControls:    (id)       => api.get(`/frameworks/${id}/controls`),
+  install:         (id)       => api.post(`/frameworks/${id}/install`),
+}
+
+// ──────────────────────────────────────────────────────
+//  Phase 6 — Continuous Compliance Platform
+// ──────────────────────────────────────────────────────
+
+// Compliance Monitoring
+export const monitorsAPI = {
+  runGitHub:       (repo, token, controlId) =>
+    api.post('/monitors/run-github', { repo, token, control_id: controlId || null }),
+  runControlGaps:  ()      => api.post('/monitors/run-control-gaps'),
+  runEvidenceGaps: ()      => api.post('/monitors/run-evidence-gaps'),
+  list:            (limit) => api.get('/monitors/', { params: limit ? { limit } : {} }),
+}
+
+// AI Policy Generator
+export const policiesAPI = {
+  types:    ()        => api.get('/policies/types'),
+  generate: (payload) => api.post('/policies/generate', payload),
+}
+
+// Vendor Risk Management
+export const vendorsAPI = {
+  list:    ()          => api.get('/vendors/'),
+  summary: ()          => api.get('/vendors/summary'),
+  create:  (payload)   => api.post('/vendors/', payload),
+  get:     (id)        => api.get(`/vendors/${id}`),
+  update:  (id, data)  => api.put(`/vendors/${id}`, data),
+  delete:  (id)        => api.delete(`/vendors/${id}`),
+}
+
+// Regulatory Updates
+export const regulatoryAPI = {
+  updates: (category, jurisdiction, forceRefresh) =>
+    api.get('/regulatory/updates', {
+      params: {
+        ...(category     ? { category }      : {}),
+        ...(jurisdiction ? { jurisdiction }  : {}),
+        ...(forceRefresh ? { force_refresh: true } : {}),
+      },
+    }),
+  feeds: () => api.get('/regulatory/feeds'),
+}
+
+// Compliance Alerts
+export const alertsAPI = {
+  list:           (unacked)  => api.get('/alerts/', { params: unacked ? { unacked: true } : {} }),
+  summary:        ()         => api.get('/alerts/summary'),
+  acknowledge:    (id)       => api.post(`/alerts/${id}/acknowledge`),
+  acknowledgeAll: ()         => api.post('/alerts/acknowledge-all'),
+  delete:         (id)       => api.delete(`/alerts/${id}`),
 }
 
 export default api

@@ -25,5 +25,8 @@ class ComplianceFramework(Base, UUIDMixin, TimestampMixin):
     # Which controls belong to this framework
     controls = relationship("InternalControl", back_populates="framework")
 
+    # Pre-built template controls (FrameworkControl)
+    template_controls = relationship("FrameworkControl", back_populates="framework", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<ComplianceFramework(name='{self.name}', category='{self.category}')>"

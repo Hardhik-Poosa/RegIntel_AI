@@ -17,7 +17,18 @@ import Admin      from './pages/Admin'
 import OrgSettings from './pages/OrgSettings'
 import Frameworks from './pages/Frameworks'
 import Copilot   from './pages/Copilot'
+import Evidence  from './pages/Evidence'
+import FrameworkLibrary from './pages/FrameworkLibrary'
+import Integrations from './pages/Integrations'
+import Reports   from './pages/Reports'
 import NotFound   from './pages/NotFound'
+
+// Phase 6 pages
+import PolicyGenerator   from './pages/PolicyGenerator'
+import VendorRisk        from './pages/VendorRisk'
+import ComplianceMonitor from './pages/ComplianceMonitor'
+import Alerts            from './pages/Alerts'
+import RegulatoryUpdates from './pages/RegulatoryUpdates'
 
 export default function App() {
   return (
@@ -48,6 +59,16 @@ export default function App() {
               <Route path="/settings"   element={<OrgSettings />} />
               <Route path="/frameworks" element={<Frameworks />} />
               <Route path="/copilot"    element={<Copilot />}   />
+              <Route path="/evidence"   element={<Evidence />}  />
+              <Route path="/library"    element={<FrameworkLibrary />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/reports"    element={<Reports />}   />
+              {/* Phase 6 */}
+              <Route path="/policies"   element={<PolicyGenerator />}   />
+              <Route path="/vendors"    element={<VendorRisk />}        />
+              <Route path="/monitoring" element={<ComplianceMonitor />} />
+              <Route path="/alerts"     element={<Alerts />}            />
+              <Route path="/regulatory" element={<RegulatoryUpdates />} />
             </Route>
 
             {/* ── Catch-all ───────────────────────────────── */}

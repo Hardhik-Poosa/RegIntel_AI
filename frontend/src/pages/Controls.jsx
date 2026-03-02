@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Modal }        from 'bootstrap'
-import { controlsAPI }  from '../services/api'
+import { controlsAPI, frameworksAPI }  from '../services/api'
 import { RiskBadge, StatusBadge } from '../components/RiskBadge'
 import AlertMessage     from '../components/AlertMessage'
 import { TableSkeleton } from '../components/Skeleton'
@@ -8,7 +8,28 @@ import { useToast }     from '../context/ToastContext'
 import { formatDate, truncate } from '../utils/helpers'
 
 // ── Empty form shape ───────────────────────────────────
-const EMPTY_FORM = { title: '', description: '', status: 'MISSING', risk_score: 'MEDIUM' }
+const EMPTY_FORM = { title: '', description: '', status: 'MISSING', risk_score: 'MEDIUM', framework_id: '' }
+
+// ── AI Status pill ─────────────────────────────────────
+const AI_STATUS_STYLES = {
+  pending:    { bg: 'rgba(139,148,158,0.12)', color: '#8b949e', border: '#30363d',           label: '⏳ Pending'    },
+  processing: { bg: 'rgba(79,142,247,0.12)',  color: '#4f8ef7', border: 'rgba(79,142,247,0.3)', label: '⚙ Processing' },
+  done:       { bg: 'rgba(63,185,80,0.12)',   color: '#3fb950', border: 'rgba(63,185,80,0.3)',  label: '✓ Done'       },
+  failed:     { bg: 'rgba(248,81,73,0.12)',   color: '#f85149', border: 'rgba(248,81,73,0.3)',  label: '✗ Failed'     },
+}
+function AIStatusPill({ status }) {
+  if (!status) return null
+  const s = AI_STATUS_STYLES[status] ?? AI_STATUS_STYLES.pending
+  return (
+    <span style={{
+      fontSize: '0.65rem', fontWeight: 700, padding: '1px 6px', borderRadius: 20,
+      background: s.bg, color: s.color, border: `1px solid ${s.border}`,
+      marginRight: 4, verticalAlign: 'middle',
+    }}>
+      {s.label}
+    </span>
+  )
+}
 
 const RISK_COLOR = { HIGH: '#f85149', MEDIUM: '#d29922', LOW: '#3fb950' }
 
@@ -98,7 +119,7 @@ function AITextSection({ text }) {
 }
 
 // ── Control Form Modal ─────────────────────────────────
-function ControlModal({ modalRef, editTarget, onSaved }) {
+function ControlModal({ modalRef, editTarget, onSaved, frameworks = [] }) {
   const { toast }             = useToast()
   const [form, setForm]       = useState(EMPTY_FORM)
   const [saving, setSaving]   = useState(false)
@@ -108,10 +129,11 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
   useEffect(() => {
     if (editTarget) {
       setForm({
-        title:       editTarget.title       ?? '',
-        description: editTarget.description ?? '',
-        status:      editTarget.status      ?? 'MISSING',
-        risk_score:  editTarget.risk_score  ?? 'MEDIUM',
+        title:        editTarget.title        ?? '',
+        description:  editTarget.description  ?? '',
+        status:       editTarget.status       ?? 'MISSING',
+        risk_score:   editTarget.risk_score   ?? 'MEDIUM',
+        framework_id: editTarget.framework_id ?? '',
       })
     } else {
       setForm(EMPTY_FORM)
@@ -127,13 +149,15 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
     e.preventDefault()
     setError('')
     setSaving(true)
+    // normalise empty framework_id to null
+    const payload = { ...form, framework_id: form.framework_id || null }
     try {
       if (editTarget) {
-        await controlsAPI.update(editTarget.id, form)
+        await controlsAPI.update(editTarget.id, payload)
         Modal.getInstance(modalRef.current)?.hide()
         toast.success(`"${form.title}" updated successfully.`)
       } else {
-        await controlsAPI.create(form)
+        await controlsAPI.create(payload)
         Modal.getInstance(modalRef.current)?.hide()
         toast.success(`"${form.title}" created successfully.`)
       }
@@ -216,6 +240,23 @@ function ControlModal({ modalRef, editTarget, onSaved }) {
                   </select>
                 </div>
               </div>
+
+              {frameworks.length > 0 && (
+                <div className="mt-3">
+                  <label className="form-label" htmlFor="ctrl-framework">Framework <span style={{ color: '#8b949e', fontWeight: 400 }}>(optional)</span></label>
+                  <select
+                    id="ctrl-framework" name="framework_id"
+                    className="rg-input form-control form-select"
+                    value={form.framework_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">— None —</option>
+                    {frameworks.map((fw) => (
+                      <option key={fw.id} value={fw.id}>{fw.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* AI Insights — read-only, shown only when editing a control with AI data */}
               {editTarget && (editTarget.ai_analysis || editTarget.ai_suggested_risk || editTarget.ai_category) && (
@@ -349,10 +390,11 @@ function DeleteModal({ modalRef, target, onDeleted }) {
 
 // ── Main Controls Page ─────────────────────────────────
 export default function Controls() {
-  const [controls, setControls] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
-  const [search, setSearch]     = useState('')
+  const [controls, setControls]         = useState([])
+  const [frameworks, setFrameworks]     = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [error, setError]               = useState('')
+  const [search, setSearch]             = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [riskFilter, setRiskFilter]     = useState('ALL')
   const [editTarget, setEditTarget]     = useState(null)   // null = create mode
@@ -373,8 +415,12 @@ export default function Controls() {
     setLoading(true)
     setError('')
     try {
-      const { data } = await controlsAPI.getAll()
-      setControls(Array.isArray(data) ? data : [])
+      const [ctrlRes, fwRes] = await Promise.all([
+        controlsAPI.getAll(),
+        frameworksAPI.list(),
+      ])
+      setControls(Array.isArray(ctrlRes.data) ? ctrlRes.data : [])
+      setFrameworks(Array.isArray(fwRes.data) ? fwRes.data : [])
     } catch (err) {
       setError(err?.response?.data?.detail ?? 'Failed to load controls.')
     } finally {
@@ -505,6 +551,7 @@ export default function Controls() {
                     <th>Title</th>
                     <th>Status</th>
                     <th>Risk</th>
+                    <th>AI</th>
                     <th>AI Analysis</th>
                     <th>Created</th>
                     <th style={{ textAlign: 'right' }}>Actions</th>
@@ -525,6 +572,9 @@ export default function Controls() {
                       </td>
                       <td><StatusBadge status={ctrl.status} /></td>
                       <td><RiskBadge risk={ctrl.risk_score} /></td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <AIStatusPill status={ctrl.ai_status} />
+                      </td>
                       <td style={{ maxWidth: '240px' }}>
                         <AIBadges ctrl={ctrl} onRefresh={patchControl} />
                       </td>
@@ -561,6 +611,7 @@ export default function Controls() {
         modalRef={ctrlModalEl}
         editTarget={editTarget}
         onSaved={fetchControls}
+        frameworks={frameworks}
       />
       <DeleteModal
         modalRef={deleteModalEl}

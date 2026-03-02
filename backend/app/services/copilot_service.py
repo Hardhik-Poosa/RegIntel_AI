@@ -111,6 +111,17 @@ Answer with specific, actionable recommendations based only on the data above.""
 
         try:
             answer = await AIService.chat(user_prompt, system_prompt=system_prompt)
+
+            # 🔹 Increment ai_calls_used for billing/rate-limit tracking
+            try:
+                from app.models.organization import Organization
+                org = await db.get(Organization, organization_id)
+                if org:
+                    org.ai_calls_used = (org.ai_calls_used or 0) + 1
+                    await db.commit()
+            except Exception as bill_exc:
+                logger.warning("Failed to increment ai_calls_used: %s", bill_exc)
+
             return answer
         except Exception as exc:
             logger.error("Copilot chat failed: %s", exc)

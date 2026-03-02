@@ -25,6 +25,11 @@ celery_app.conf.update(
             # Runs every day at 02:00 UTC — quiet period, low load
             "schedule": crontab(hour=2, minute=0),
         },
+        # Phase 6: Continuous Compliance Monitoring — 03:00 UTC
+        "daily-monitoring": {
+            "task": "app.tasks.monitor_tasks.run_daily_monitoring",
+            "schedule": crontab(hour=3, minute=0),
+        },
     },
     timezone="UTC",
 )

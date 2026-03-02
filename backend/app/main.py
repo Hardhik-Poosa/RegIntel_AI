@@ -119,3 +119,54 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}/risk",
     tags=["risk"],
 )
+
+# ── Phase 5 routes ─────────────────────────────────────────────────────────────
+from app.api.evidence import router as evidence_router
+app.include_router(
+    evidence_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Evidence"],
+)
+
+from app.api.integrations import router as integrations_router
+app.include_router(
+    integrations_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Integrations"],
+)
+
+# ── Phase 6 routes ─────────────────────────────────────────────────────────────
+from app.api.monitors import router as monitors_router
+app.include_router(
+    monitors_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Monitors"],
+)
+
+from app.api.policies import router as policies_router
+app.include_router(
+    policies_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Policies"],
+)
+
+from app.api.vendors import router as vendors_router
+app.include_router(
+    vendors_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Vendors"],
+)
+
+from app.api.regulatory import router as regulatory_router
+app.include_router(
+    regulatory_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Regulatory"],
+)
+
+from app.api.alerts import router as alerts_router
+app.include_router(
+    alerts_router,
+    prefix=f"{settings.API_V1_STR}",
+    tags=["Alerts"],
+)
