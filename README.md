@@ -198,7 +198,6 @@ The backend API will be available at `http://localhost:8000`.
 
 ```bash
 # From the frontend/ directory
-npm run dev
 ```
 
 The frontend application will be available at `http://localhost:5173`. You can now register a new organization and log in.
