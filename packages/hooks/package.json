@@ -1,0 +1,14 @@
+{
+  "name": "@regintel/hooks",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "dependencies": {
+    "@regintel/api": "*",
+    "@regintel/types": "*"
+  }
+}

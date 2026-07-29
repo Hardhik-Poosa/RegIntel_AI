@@ -1,0 +1,20 @@
+{
+  "name": "regintel-ai-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "web",
+    "mobile",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "dev:web": "npm --prefix web run dev",
+    "dev:mobile": "npm --prefix mobile run dev",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000",
+    "build": "npm --prefix web run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
