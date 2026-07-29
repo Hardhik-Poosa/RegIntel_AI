@@ -45,13 +45,13 @@ class InternalControl(Base, UUIDMixin, TimestampMixin):
     description = Column(Text, nullable=True)
 
     status = Column(
-        Enum(ControlStatus, name="controlstatus"),
+        Enum(ControlStatus, name="control_status"),
         default=ControlStatus.MISSING,
         nullable=False,
     )
 
     risk_score = Column(
-        Enum(ControlRisk, name="controlrisk"),
+        Enum(ControlRisk, name="control_risk"),
         default=ControlRisk.MEDIUM,
         nullable=False,
     )
