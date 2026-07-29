@@ -7,8 +7,7 @@
     "dev": "expo start",
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "ios": "expo start --ios"
   },
   "dependencies": {
     "@regintel/api": "*",
@@ -16,7 +15,6 @@
     "@regintel/config": "*",
     "@regintel/hooks": "*",
     "@regintel/types": "*",
-    "@regintel/ui-tokens": "*",
     "@regintel/utils": "*",
     "@regintel/validation": "*",
     "expo": "~51.0.0",
@@ -29,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@expo/metro-config": "~0.18.0",
     "@types/react": "~18.2.45",
     "typescript": "^5.4.0"
   }
