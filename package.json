@@ -1,5 +1,5 @@
 {
-  "name": "regintel-ai-monorepo",
+  "name": "regintel-ai",
   "private": true,
   "version": "1.0.0",
   "workspaces": [
@@ -8,18 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm --prefix web run dev",
     "dev:web": "npm --prefix web run dev",
-    "dev:mobile": "cd mobile && npx expo start --port 8089",
-    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000",
-    "build": "npm --prefix web run build"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0"
-  },
-  "dependencies": {
-    "@expo/metro-runtime": "~3.2.3",
-    "react-dom": "^18.2.0",
-    "react-native-web": "^0.19.13"
+    "dev:mobile": "npm --prefix mobile start",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload",
+    "build:web": "npm --prefix web run build"
   }
 }
