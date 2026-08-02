@@ -7,5 +7,6 @@ from app.models.audit import AuditLog
 from app.models.evidence import ControlEvidence
 from app.models.framework_control import FrameworkControl
 from app.models.compliance_monitor import ComplianceMonitor
+from app.models.compliance_job import ComplianceJob
 from app.models.vendor import Vendor
 from app.models.alert import ComplianceAlert

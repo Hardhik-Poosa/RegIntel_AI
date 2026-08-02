@@ -6,15 +6,15 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER:     ${POSTGRES_USER:-regintel}
+      POSTGRES_USER: ${POSTGRES_USER:-regintel}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-regintel}
-      POSTGRES_DB:       ${POSTGRES_DB:-regintel}
+      POSTGRES_DB: ${POSTGRES_DB:-regintel}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-regintel}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-regintel}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -39,11 +39,11 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-regintel}:${POSTGRES_PASSWORD:-regintel}@postgres:5432/${POSTGRES_DB:-regintel}
-      REDIS_URL:    redis://redis:6379/0
-      SECRET_KEY:   ${SECRET_KEY:-change-me-in-production}
-      ENVIRONMENT:  ${ENVIRONMENT:-production}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
-      AI_BASE_URL:  ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
+      AI_BASE_URL: ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,10 +63,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-regintel}:${POSTGRES_PASSWORD:-regintel}@postgres:5432/${POSTGRES_DB:-regintel}
-      REDIS_URL:    redis://redis:6379/0
-      SECRET_KEY:   ${SECRET_KEY:-change-me-in-production}
-      ENVIRONMENT:  ${ENVIRONMENT:-production}
-      AI_BASE_URL:  ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      AI_BASE_URL: ${AI_BASE_URL:-http://host.docker.internal:1234/v1/chat/completions}
     depends_on:
       postgres:
         condition: service_healthy
