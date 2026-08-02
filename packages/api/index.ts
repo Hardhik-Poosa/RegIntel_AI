@@ -97,6 +97,25 @@ export const integrationsAPI = {
   getIntegrations: () => api.get('/integrations/'),
 };
 
+// ── Monitors API ──
+export const monitorsAPI = {
+  runGitHub: (repo: string, token?: string, controlId?: string) => api.post('/monitors/run-github', { repo, token, control_id: controlId || null }),
+  runControlGaps: () => api.post('/monitors/run-control-gaps'),
+  runEvidenceGaps: () => api.post('/monitors/run-evidence-gaps'),
+  runAWS: (controlId?: string) => api.post('/monitors/run-aws', null, { params: controlId ? { control_id: controlId } : {} }),
+  runEvidenceExpiration: () => api.post('/monitors/run-evidence-expiration'),
+  recalculatePosture: () => api.post('/monitors/recalculate-posture'),
+  runAll: () => api.post('/monitors/run-all'),
+  getHealth: () => api.get('/monitors/health'),
+  getChanges: (limit?: number) => api.get('/monitors/changes', { params: limit ? { limit } : {} }),
+  getAssets: (limit?: number) => api.get('/monitors/assets', { params: limit ? { limit } : {} }),
+  getRules: () => api.get('/monitors/rules'),
+  getScans: (limit?: number) => api.get('/monitors/scans', { params: limit ? { limit } : {} }),
+  getJobs: (limit?: number) => api.get('/monitors/jobs', { params: limit ? { limit } : {} }),
+  getTimeline: (limit?: number) => api.get('/monitors/timeline', { params: limit ? { limit } : {} }),
+  list: (limit?: number) => api.get('/monitors/', { params: limit ? { limit } : {} }),
+};
+
 // ── Reports API ──
 export const reportsAPI = {
   getExecutiveSummary: () => api.get('/reports/executive'),

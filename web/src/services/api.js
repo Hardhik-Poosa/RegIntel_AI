@@ -196,11 +196,21 @@ export const frameworksAPI = {
 
 // Compliance Monitoring
 export const monitorsAPI = {
-  runGitHub:       (repo, token, controlId) =>
-    api.post('/monitors/run-github', { repo, token, control_id: controlId || null }),
-  runControlGaps:  ()      => api.post('/monitors/run-control-gaps'),
-  runEvidenceGaps: ()      => api.post('/monitors/run-evidence-gaps'),
-  list:            (limit) => api.get('/monitors/', { params: limit ? { limit } : {} }),
+  runGitHub:             (repo, token, controlId) => api.post('/monitors/run-github', { repo, token, control_id: controlId || null }),
+  runControlGaps:        ()      => api.post('/monitors/run-control-gaps'),
+  runEvidenceGaps:       ()      => api.post('/monitors/run-evidence-gaps'),
+  runAWS:                (controlId) => api.post('/monitors/run-aws', null, { params: controlId ? { control_id: controlId } : {} }),
+  runEvidenceExpiration: ()      => api.post('/monitors/run-evidence-expiration'),
+  recalculatePosture:    ()      => api.post('/monitors/recalculate-posture'),
+  runAll:                ()      => api.post('/monitors/run-all'),
+  getHealth:             ()      => api.get('/monitors/health'),
+  getChanges:            (limit) => api.get('/monitors/changes', { params: limit ? { limit } : {} }),
+  getAssets:             (limit) => api.get('/monitors/assets', { params: limit ? { limit } : {} }),
+  getRules:              ()      => api.get('/monitors/rules'),
+  getScans:              (limit) => api.get('/monitors/scans', { params: limit ? { limit } : {} }),
+  getJobs:               (limit) => api.get('/monitors/jobs', { params: limit ? { limit } : {} }),
+  getTimeline:           (limit) => api.get('/monitors/timeline', { params: limit ? { limit } : {} }),
+  list:                  (limit) => api.get('/monitors/', { params: limit ? { limit } : {} }),
 }
 
 // AI Policy Generator
