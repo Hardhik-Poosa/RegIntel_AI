@@ -22,10 +22,13 @@ class ComplianceAlert(Base, UUIDMixin, TimestampMixin):
     organization_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
     control_id      = mapped_column(PGUUID(as_uuid=True), ForeignKey("controls.id",       ondelete="SET NULL"), nullable=True)
 
+    title       = mapped_column(String(256), nullable=True)
     severity    = mapped_column(String(16),  nullable=False, default="HIGH")    # CRITICAL | HIGH | MEDIUM | LOW
     category    = mapped_column(String(64),  nullable=True)                     # MONITOR | AI | EVIDENCE | VENDOR
     message     = mapped_column(Text,        nullable=False)
+    status      = mapped_column(String(32),  nullable=False, default="OPEN")    # OPEN | ACKNOWLEDGED | RESOLVED
     acknowledged = mapped_column(Boolean,    default=False, nullable=False)     # user dismissed
+    assigned_to = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<ComplianceAlert(severity={self.severity}, ack={self.acknowledged})>"
+        return f"<ComplianceAlert(title='{self.title}', severity={self.severity}, status={self.status})>"

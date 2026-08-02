@@ -13,7 +13,7 @@ RegintelAI/
 │
 ├── web/                     # React + Vite Enterprise Web Dashboard (Bootstrap 5, Recharts)
 │
-├── mobile/                  # React Native + Expo Cross-Platform Mobile Application (Expo SDK 51)
+├── mobile/                  # React Native + Expo Cross-Platform Mobile Application (Expo SDK 52)
 │
 ├── packages/                # Shared Monorepo TypeScript Packages
 │   ├── api/                 # Reusable Axios API Client (@regintel/api)

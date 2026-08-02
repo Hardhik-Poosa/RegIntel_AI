@@ -8,5 +8,9 @@ from app.models.evidence import ControlEvidence
 from app.models.framework_control import FrameworkControl
 from app.models.compliance_monitor import ComplianceMonitor
 from app.models.compliance_job import ComplianceJob
+from app.models.compliance_change import ComplianceChange
+from app.models.cloud_asset import CloudAsset
+from app.models.monitoring_rule import MonitoringRule
+from app.models.compliance_scan import ComplianceScan
 from app.models.vendor import Vendor
 from app.models.alert import ComplianceAlert

@@ -137,6 +137,115 @@ async def list_jobs(
     return [_job_row(j) for j in jobs]
 
 
+@router.post("/run-all", summary="Run full manual compliance monitoring suite immediately")
+async def run_full_suite(
+    db:   AsyncSession = Depends(get_db),
+    user: User         = Depends(get_current_user),
+) -> dict[str, Any]:
+    return await MonitorService.run_full_monitoring_suite(db, organization_id=user.organization_id, trigger_type="MANUAL")
+
+
+@router.get("/health", summary="Get System Health Dashboard & operational metrics")
+async def get_health(
+    db:   AsyncSession = Depends(get_db),
+    user: User         = Depends(get_current_user),
+) -> dict[str, Any]:
+    return await MonitorService.get_health_dashboard(db, organization_id=user.organization_id)
+
+
+@router.get("/changes", summary="List detected compliance state changes & drifts")
+async def list_changes(
+    limit: int         = Query(50, ge=1, le=200),
+    db:    AsyncSession = Depends(get_db),
+    user:  User         = Depends(get_current_user),
+) -> list[dict]:
+    changes = await MonitorService.list_changes(db, organization_id=user.organization_id, limit=limit)
+    return [
+        {
+            "id":          str(c.id),
+            "control_id":  str(c.control_id) if c.control_id else None,
+            "change_type": c.change_type,
+            "old_value":   c.old_value,
+            "new_value":   c.new_value,
+            "severity":    c.severity,
+            "detected_at": c.detected_at.isoformat() if c.detected_at else None,
+            "resolved_at": c.resolved_at.isoformat() if c.resolved_at else None,
+        }
+        for c in changes
+    ]
+
+
+@router.get("/assets", summary="List cloud asset inventory & risk ratings")
+async def list_assets(
+    limit: int         = Query(100, ge=1, le=500),
+    db:    AsyncSession = Depends(get_db),
+    user:  User         = Depends(get_current_user),
+) -> list[dict]:
+    assets = await MonitorService.list_assets(db, organization_id=user.organization_id, limit=limit)
+    return [
+        {
+            "id":          str(a.id),
+            "provider":    a.provider,
+            "asset_type":  a.asset_type,
+            "name":        a.name,
+            "owner":       a.owner,
+            "risk_level":  a.risk_level,
+            "last_seen":   a.last_seen.isoformat() if a.last_seen else None,
+        }
+        for a in assets
+    ]
+
+
+@router.get("/rules", summary="List configurable monitoring rules")
+async def list_rules(
+    db:   AsyncSession = Depends(get_db),
+    user: User         = Depends(get_current_user),
+) -> list[dict]:
+    rules = await MonitorService.list_rules(db, organization_id=user.organization_id)
+    return [
+        {
+            "id":             str(r.id),
+            "rule_name":      r.rule_name,
+            "condition_type": r.condition_type,
+            "severity":       r.severity,
+            "enabled":        r.enabled,
+            "description":    r.description,
+        }
+        for r in rules
+    ]
+
+
+@router.get("/scans", summary="List historical compliance scan logs")
+async def list_scans(
+    limit: int         = Query(50, ge=1, le=200),
+    db:    AsyncSession = Depends(get_db),
+    user:  User         = Depends(get_current_user),
+) -> list[dict]:
+    scans = await MonitorService.list_scans(db, organization_id=user.organization_id, limit=limit)
+    return [
+        {
+            "id":               str(s.id),
+            "scan_type":        s.scan_type,
+            "status":           s.status,
+            "items_scanned":    s.items_scanned,
+            "failures_found":   s.failures_found,
+            "duration_seconds": s.duration_seconds,
+            "started_at":       s.started_at.isoformat() if s.started_at else None,
+            "completed_at":     s.completed_at.isoformat() if s.completed_at else None,
+        }
+        for s in scans
+    ]
+
+
+@router.get("/timeline", summary="Get activity timeline feed")
+async def get_timeline(
+    limit: int         = Query(30, ge=1, le=100),
+    db:    AsyncSession = Depends(get_db),
+    user:  User         = Depends(get_current_user),
+) -> list[dict]:
+    return await MonitorService.get_timeline(db, organization_id=user.organization_id, limit=limit)
+
+
 @router.get("/", summary="List monitoring history for the current organisation")
 async def list_history(
     limit: int         = Query(50, ge=1, le=200),
@@ -156,4 +265,5 @@ async def list_history(
         }
 
     return [_row(r) for r in records]
+
 
