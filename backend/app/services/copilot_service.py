@@ -27,12 +27,15 @@ class CopilotService:
         Fetch controls + recent snapshots and build a JSON-serialisable
         summary that the LLM can understand.
         """
+        from sqlalchemy.orm import selectinload
         from app.models.control import InternalControl
         from app.models.compliance_snapshot import ComplianceSnapshot
 
-        # Controls
+        # Controls with framework eagerly loaded
         ctrl_result = await db.execute(
-            select(InternalControl).where(InternalControl.organization_id == organization_id)
+            select(InternalControl)
+            .options(selectinload(InternalControl.framework))
+            .where(InternalControl.organization_id == organization_id)
         )
         controls = ctrl_result.scalars().all()
 
