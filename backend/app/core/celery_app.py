@@ -17,6 +17,9 @@ celery_app.conf.update(
     result_expires=3600,          # results kept for 1 h
     task_acks_late=True,          # re-queue on worker crash
     worker_prefetch_multiplier=1, # one task at a time per worker
+    broker_connection_retry_on_startup=False,
+    broker_transport_options={"max_retries": 1, "interval_start": 0.1, "interval_step": 0.1, "interval_max": 0.2},
+    result_backend_transport_options={"max_retries": 1, "interval_start": 0.1, "interval_step": 0.1, "interval_max": 0.2},
 
     # ── Celery Beat schedule ─────────────────────────────────────────────────
     beat_schedule={

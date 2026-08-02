@@ -18,6 +18,15 @@ from app.services.compliance_service import ComplianceService
 logger = logging.getLogger(__name__)
 
 
+def _is_redis_available(host: str = "127.0.0.1", port: int = 6379, timeout: float = 0.2) -> bool:
+    import socket
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
 class ControlService:
 
     @staticmethod
@@ -55,14 +64,20 @@ class ControlService:
 
         logger.info(f"Control created: {db_obj.id}")
 
-        # 🔹 Background AI execution — Celery preferred, asyncio fallback
+        # 🔹 Background AI execution — Celery preferred if Redis is online, asyncio fallback if offline
         if db_obj.description:
-            try:
-                from app.tasks.ai_tasks import run_ai_analysis
-                run_ai_analysis.delay(str(db_obj.id), db_obj.description)
-                logger.debug("Dispatched AI task via Celery for control %s", db_obj.id)
-            except Exception as exc:  # Celery/Redis not available (dev without Redis)
-                logger.warning("Celery unavailable (%s), falling back to asyncio", exc)
+            if _is_redis_available():
+                try:
+                    from app.tasks.ai_tasks import run_ai_analysis
+                    run_ai_analysis.delay(str(db_obj.id), db_obj.description)
+                    logger.debug("Dispatched AI task via Celery for control %s", db_obj.id)
+                except Exception as exc:  # Celery/Redis error
+                    logger.warning("Celery dispatch failed (%s), falling back to asyncio", exc)
+                    asyncio.create_task(
+                        ControlService._background_ai_task(db_obj.id, db_obj.description)
+                    )
+            else:
+                logger.info("Redis offline locally; executing AI task directly via asyncio for control %s", db_obj.id)
                 asyncio.create_task(
                     ControlService._background_ai_task(db_obj.id, db_obj.description)
                 )
