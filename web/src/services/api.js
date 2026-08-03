@@ -203,15 +203,21 @@ export const monitorsAPI = {
   runEvidenceExpiration: ()      => api.post('/monitors/run-evidence-expiration'),
   recalculatePosture:    ()      => api.post('/monitors/recalculate-posture'),
   runAll:                ()      => api.post('/monitors/run-all'),
+  run:                   ()      => api.post('/monitors/run'),
   getHealth:             ()      => api.get('/monitors/health'),
+  getStatistics:         ()      => api.get('/monitors/statistics'),
+  getAlerts:             (limit) => api.get('/monitors/alerts', { params: limit ? { limit } : {} }),
   getChanges:            (limit) => api.get('/monitors/changes', { params: limit ? { limit } : {} }),
   getAssets:             (limit) => api.get('/monitors/assets', { params: limit ? { limit } : {} }),
   getRules:              ()      => api.get('/monitors/rules'),
+  createRule:            (payload) => api.post('/monitors/rules', payload),
+  toggleRule:            (ruleId)  => api.post(`/monitors/rules/${ruleId}/toggle`),
   getScans:              (limit) => api.get('/monitors/scans', { params: limit ? { limit } : {} }),
   getJobs:               (limit) => api.get('/monitors/jobs', { params: limit ? { limit } : {} }),
   getTimeline:           (limit) => api.get('/monitors/timeline', { params: limit ? { limit } : {} }),
   list:                  (limit) => api.get('/monitors/', { params: limit ? { limit } : {} }),
 }
+
 
 // AI Policy Generator
 export const policiesAPI = {

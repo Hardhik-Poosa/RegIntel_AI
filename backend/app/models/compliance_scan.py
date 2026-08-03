@@ -19,11 +19,15 @@ class ComplianceScan(Base, UUIDMixin, TimestampMixin):
     scan_type        = mapped_column(String(64),  nullable=False)   # FULL_SUITE | AWS_POSTURE | EVIDENCE_EXPIRATION | GITHUB_SCAN
     status           = mapped_column(String(32),  nullable=False, default="SUCCESS")  # SUCCESS | WARNING | FAILED
     items_scanned    = mapped_column(Integer,     nullable=False, default=0)
+    assets_scanned   = mapped_column(Integer,     nullable=False, default=0)
     failures_found   = mapped_column(Integer,     nullable=False, default=0)
+    errors           = mapped_column(Integer,     nullable=False, default=0)
     duration_seconds = mapped_column(Float,       nullable=False, default=0.0)
 
     started_at       = mapped_column(DateTime(timezone=True), nullable=False)
     completed_at     = mapped_column(DateTime(timezone=True), nullable=False)
+    finished_at      = mapped_column(DateTime(timezone=True), nullable=True)
+
 
     def __repr__(self) -> str:
         return f"<ComplianceScan(type={self.scan_type}, status={self.status}, failures={self.failures_found})>"

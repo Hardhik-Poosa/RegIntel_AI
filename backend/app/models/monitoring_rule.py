@@ -15,11 +15,14 @@ class MonitoringRule(Base, UUIDMixin, TimestampMixin):
 
     organization_id = mapped_column(PGUUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
 
+    provider        = mapped_column(String(64),  nullable=False, default="AWS")    # AWS | GitHub | Evidence | System
     rule_name       = mapped_column(String(128), nullable=False)
     condition_type  = mapped_column(String(64),  nullable=False)   # S3_PUBLIC_BLOCK | IAM_MFA_ENFORCED | EVIDENCE_VALIDITY | GITHUB_SECURITY_MD
     severity        = mapped_column(String(16),  nullable=False, default="HIGH")   # CRITICAL | HIGH | MEDIUM | LOW
     enabled         = mapped_column(Boolean,     nullable=False, default=True)
     description     = mapped_column(Text,        nullable=True)
+    last_run        = mapped_column(String(64),  nullable=True)
 
     def __repr__(self) -> str:
-        return f"<MonitoringRule(name='{self.rule_name}', enabled={self.enabled})>"
+        return f"<MonitoringRule(name='{self.rule_name}', provider='{self.provider}', enabled={self.enabled})>"
+

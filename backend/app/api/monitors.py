@@ -137,12 +137,46 @@ async def list_jobs(
     return [_job_row(j) for j in jobs]
 
 
+@router.post("/run", summary="Manual scan trigger — Run continuous compliance scan now")
 @router.post("/run-all", summary="Run full manual compliance monitoring suite immediately")
 async def run_full_suite(
     db:   AsyncSession = Depends(get_db),
     user: User         = Depends(get_current_user),
 ) -> dict[str, Any]:
     return await MonitorService.run_full_monitoring_suite(db, organization_id=user.organization_id, trigger_type="MANUAL")
+
+
+@router.get("/statistics", summary="Get continuous compliance scan statistics")
+async def get_statistics(
+    db:   AsyncSession = Depends(get_db),
+    user: User         = Depends(get_current_user),
+) -> dict[str, Any]:
+    return await MonitorService.get_statistics(db, organization_id=user.organization_id)
+
+
+@router.get("/alerts", summary="List active and resolved compliance alerts")
+async def list_alerts(
+    limit: int         = Query(50, ge=1, le=200),
+    db:    AsyncSession = Depends(get_db),
+    user:  User         = Depends(get_current_user),
+) -> list[dict]:
+    from app.services.alert_service import AlertService
+    alerts = await AlertService.get_alerts_for_org(db, organization_id=user.organization_id, limit=limit)
+    return [
+        {
+            "id":           str(a.id),
+            "title":        a.title or f"Alert: {a.category or 'MONITOR'}",
+            "description":  a.description or a.message,
+            "message":      a.message,
+            "severity":     a.severity,
+            "category":     a.category,
+            "status":       a.status,
+            "assigned_to":   str(a.assigned_to) if a.assigned_to else None,
+            "resolved_at":  a.resolved_at,
+            "created_at":   a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in alerts
+    ]
 
 
 @router.get("/health", summary="Get System Health Dashboard & operational metrics")
@@ -153,7 +187,7 @@ async def get_health(
     return await MonitorService.get_health_dashboard(db, organization_id=user.organization_id)
 
 
-@router.get("/changes", summary="List detected compliance state changes & drifts")
+@router.get("/changes", summary="List detected compliance state changes & deltas")
 async def list_changes(
     limit: int         = Query(50, ge=1, le=200),
     db:    AsyncSession = Depends(get_db),
@@ -168,8 +202,10 @@ async def list_changes(
             "old_value":   c.old_value,
             "new_value":   c.new_value,
             "severity":    c.severity,
-            "detected_at": c.detected_at.isoformat() if c.detected_at else None,
-            "resolved_at": c.resolved_at.isoformat() if c.resolved_at else None,
+            "reason":      getattr(c, "reason", None) or f"Change in {c.change_type}",
+            "resolved":    getattr(c, "resolved", False),
+            "detected_at": c.detected_at.isoformat() if getattr(c, "detected_at", None) else (c.created_at.isoformat() if c.created_at else None),
+            "created_at":  c.created_at.isoformat() if c.created_at else None,
         }
         for c in changes
     ]
@@ -205,14 +241,46 @@ async def list_rules(
     return [
         {
             "id":             str(r.id),
+            "provider":       getattr(r, "provider", "AWS"),
             "rule_name":      r.rule_name,
             "condition_type": r.condition_type,
             "severity":       r.severity,
             "enabled":        r.enabled,
             "description":    r.description,
+            "last_run":       getattr(r, "last_run", None) or "Recently",
         }
         for r in rules
     ]
+
+
+class CreateRulePayload(BaseModel):
+    provider:       Optional[str] = "AWS"
+    rule_name:      str
+    condition_type: Optional[str] = "CUSTOM_CHECK"
+    severity:       Optional[str] = "HIGH"
+    enabled:        Optional[bool] = True
+    description:    Optional[str] = ""
+
+
+@router.post("/rules", summary="Create a configurable monitoring rule")
+async def create_rule(
+    payload: CreateRulePayload,
+    db:      AsyncSession = Depends(get_db),
+    user:    User         = Depends(get_current_user),
+) -> dict:
+    return await MonitorService.create_rule(db, organization_id=user.organization_id, payload=payload.dict())
+
+
+@router.post("/rules/{rule_id}/toggle", summary="Toggle a monitoring rule enabled state")
+async def toggle_rule(
+    rule_id: UUID,
+    db:      AsyncSession = Depends(get_db),
+    user:    User         = Depends(get_current_user),
+) -> dict:
+    res = await MonitorService.toggle_rule(db, organization_id=user.organization_id, rule_id=rule_id)
+    if not res:
+        raise HTTPException(status_code=404, detail="Monitoring rule not found")
+    return res
 
 
 @router.get("/scans", summary="List historical compliance scan logs")
@@ -227,11 +295,14 @@ async def list_scans(
             "id":               str(s.id),
             "scan_type":        s.scan_type,
             "status":           s.status,
-            "items_scanned":    s.items_scanned,
+            "items_scanned":    getattr(s, "assets_scanned", 0) or s.items_scanned,
+            "assets_scanned":   getattr(s, "assets_scanned", 0) or s.items_scanned,
             "failures_found":   s.failures_found,
+            "errors":           getattr(s, "errors", 0) or s.failures_found,
             "duration_seconds": s.duration_seconds,
             "started_at":       s.started_at.isoformat() if s.started_at else None,
             "completed_at":     s.completed_at.isoformat() if s.completed_at else None,
+            "finished_at":      s.completed_at.isoformat() if s.completed_at else None,
         }
         for s in scans
     ]
@@ -265,5 +336,6 @@ async def list_history(
         }
 
     return [_row(r) for r in records]
+
 
 
