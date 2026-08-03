@@ -42,7 +42,7 @@ RegintelAI is evolving into a **Continuous Compliance Platform** that keeps orga
 
 | Module | Description | Status |
 |---|---|---|
-| **6A — Continuous Monitoring** | Automated AWS/GitHub checks, evidence expiration scans, posture recalculation, job tracking (`ComplianceJob`) | **Completed ✅** |
+| **6A — Continuous Monitoring Engine** | Configurable Rule Engine, Delta Change History, Alert Center, Scan History, System Health Dashboard & Manual Scanning | **Completed ✅** |
 | **6B — AI Regulatory Monitoring** | AI scrapers monitoring RBI, SEBI, PCI DSS, EU AI Act, SOC2, HIPAA | Planned |
 | **6C — AI Policy Generator** | On-demand generation of SOC2/ISO/GDPR policies in DOCX/PDF | Planned |
 | **6D — Dynamic AI Risk Engine** | Dynamic 0-100 risk scoring based on evidence, posture & threat feeds | Planned |
@@ -56,11 +56,18 @@ RegintelAI is evolving into a **Continuous Compliance Platform** that keeps orga
 
 ## ⚡ Continuous Monitoring Engine (Module 6A Capabilities)
 
-- **`ComplianceJob` Tracking**: Records batch job status (`NIGHTLY_CRON`, `MANUAL`, `WEBHOOK`), `total_checks`, `passed_checks`, `failed_checks`, and error logs.
-- **AWS Cloud Posture Scan**: Automated checks for S3 Public Access, IAM MFA, CloudTrail logging, and EBS encryption.
-- **Evidence Expiration Scanner**: Detects evidence documents expiring in <30 days or expired.
-- **Posture Recalculator**: Computes dynamic compliance percentage across controls and writes `ComplianceSnapshot` records.
-- **Celery Automation**: Runs daily at `03:00 UTC` with instant local `asyncio` fallback when Redis is offline.
+The **Phase 6A Continuous Monitoring Engine** delivers 10 core enterprise governance capabilities:
+
+1. **Configurable Monitoring Rule Engine**: Custom rules (`MonitoringRule`) supporting AWS, GitHub, Evidence Engine, and System providers with configurable severity levels (Critical, High, Medium, Low) and instant enable/disable toggles.
+2. **Compliance Change History & Score Drift**: Historical tracking (`ComplianceChange`) capturing posture deltas (e.g. `91%` → `87%`, `-4%` drift reason), control IDs, and resolution states.
+3. **Compliance Alert Center**: System-wide alert aggregation (`ComplianceAlert`) categorized by severity, component, assignee, and resolution timestamp.
+4. **Scan Execution History**: Real-time audit logs (`ComplianceScan`) recording start/finish timestamps, scan duration, total assets scanned, and error/failure counts.
+5. **Monitoring Activity Timeline**: Real-time activity feed streaming posture changes, alert triggers, and scan executions.
+6. **System Health Dashboard**: Live operational health indicators for AWS (*Healthy*), GitHub (*Healthy*), Slack Webhooks (*Connected*), Evidence Engine (*Healthy*), and AI Monitoring Pipeline (*Running*).
+7. **Manual On-Demand Scan Trigger**: One-click execution button (`POST /api/v1/monitors/run`) running active monitoring rules without waiting for cron schedules.
+8. **Scan Statistics**: Aggregated metrics API (`GET /api/v1/monitors/statistics`) providing Average Scan Time, Success %, Total Failures, Assets Checked, Evidence Checked, and Rules Triggered.
+9. **Standardized REST API Suite**: Complete endpoint coverage for rules, scans, alerts, health metrics, statistics, asset inventory, and timeline events.
+10. **Enterprise Web Dashboard**: Full-featured [ComplianceMonitor.jsx](file:///d:/regintel-ai/web/src/pages/ComplianceMonitor.jsx) user interface with 10 metric cards, live rule toggles, delta viewer, alert center, timeline feed, and individual check runners.
 
 ---
 
